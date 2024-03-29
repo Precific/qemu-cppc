@@ -1,0 +1,26 @@
+diff --git a/PKGBUILD b/PKGBUILD
+index ec46607..e0885a7 100644
+--- a/PKGBUILD
++++ b/PKGBUILD
+@@ -312,7 +312,9 @@ build() {
+     --enable-tpm
+     --smbd=/usr/bin/smbd
+     --with-coroutine=ucontext
++    --target-list=x86_64-linux-user,x86_64-softmmu
+   )
++  # Note: The custom target-list will cause errors in packaging.
+   local configure_static_options=(
+     "${common_configure_options[@]}"
+     --enable-attr
+@@ -350,8 +352,10 @@ build() {
+     --disable-xen
+     --disable-zstd
+     --static
++    --target-list=x86_64-linux-user
+   )
+-
++  # Note: The custom target-list will cause errors in packaging.
++  
+   (
+     cd build-static
+     ../$pkgbase-$pkgver/configure "${configure_static_options[@]}"

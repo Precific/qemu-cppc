@@ -1,0 +1,100 @@
+diff --unified --recursive --text --new-file ../../linux-6.7/arch/x86/include/asm/kvm_host.h linux-6.7/arch/x86/include/asm/kvm_host.h
+--- ../../linux-6.7/arch/x86/include/asm/kvm_host.h	2024-01-07 21:18:38.000000000 +0100
++++ linux-6.7/arch/x86/include/asm/kvm_host.h	2024-03-28 16:08:35.105335736 +0100
+@@ -680,6 +680,8 @@
+ 		u64 vm_id;
+ 		u32 vp_id;
+ 	} nested;
++	/* HACK (CPPC) */
++	u32 cppc_hack_counter;
+ };
+ 
+ struct kvm_hypervisor_cpuid {
+diff --unified --recursive --text --new-file ../../linux-6.7/arch/x86/kvm/cpuid.c linux-6.7/arch/x86/kvm/cpuid.c
+--- ../../linux-6.7/arch/x86/kvm/cpuid.c	2024-01-07 21:18:38.000000000 +0100
++++ linux-6.7/arch/x86/kvm/cpuid.c	2024-03-28 16:08:35.108669099 +0100
+@@ -1535,6 +1535,7 @@
+ 			if (kvm_hv_invtsc_suppressed(vcpu))
+ 				*edx &= ~SF(CONSTANT_TSC);
+ 		}
++		kvm_hv_override_cpuid(vcpu, function, eax, ebx, ecx, edx);
+ 	} else {
+ 		*eax = *ebx = *ecx = *edx = 0;
+ 		/*
+diff --unified --recursive --text --new-file ../../linux-6.7/arch/x86/kvm/hyperv.h linux-6.7/arch/x86/kvm/hyperv.h
+--- ../../linux-6.7/arch/x86/kvm/hyperv.h	2024-01-07 21:18:38.000000000 +0100
++++ linux-6.7/arch/x86/kvm/hyperv.h	2024-03-28 16:08:35.108669099 +0100
+@@ -163,6 +163,47 @@
+ 	return !(to_kvm_hv(vcpu->kvm)->hv_invtsc_control & HV_EXPOSE_INVARIANT_TSC);
+ }
+ 
++/* 
++ * HACK (CPPC) - disable HV_CPU_MANAGEMENT until hypercalls are enabled
++ *  to work around a page mapping error in winload.
++ */
++static inline void kvm_hv_override_cpuid(struct kvm_vcpu *vcpu, int function,
++	       u32 *eax, u32 *ebx, u32 *ecx, u32 *edx)
++{
++	struct kvm *kvm = vcpu->kvm;
++	struct kvm_vcpu_hv *hv_vcpu = to_hv_vcpu(vcpu);
++	struct kvm_hv *hv = to_kvm_hv(kvm);
++	if (unlikely(!hv || !hv_vcpu))
++		return;
++	if (vcpu->vcpu_idx != 0)
++		return;
++	if (hv->hv_hypercall & HV_X64_MSR_HYPERCALL_ENABLE) {
++		//Use a 'warmup' counter to fix another issue:
++		// Prevent requirement for nested Hyper-V;
++		//  if Hyper-V is not enabled but HV_CPU_MANAGEMENT is,
++		//  Windows refuses to boot.
++		// The check is usually 2 HYPERV_CPUID_FEATURES
++		//  calls after enabling hypercalls (winload).
++		if (hv_vcpu->cppc_hack_counter >= 4)
++			return;
++		if (function == HYPERV_CPUID_FEATURES)
++			++hv_vcpu->cppc_hack_counter;
++	}
++	else {
++		hv_vcpu->cppc_hack_counter = 0;
++	}
++	if (function == HYPERV_CPUID_FEATURES) {
++		if (*ebx & HV_CPU_MANAGEMENT) {
++			*ebx &= ~(HV_CPU_MANAGEMENT | HV_ISOLATION);
++		}
++	}
++	//if (function == HYPERV_CPUID_ENLIGHTMENT_INFO) {
++	//	if (hv_vcpu->cpuid_cache.features_ebx & HV_CPU_MANAGEMENT) {
++	//		*eax &= ~(HV_X64_HYPERV_NESTED);
++	//	}
++	//}
++}
++
+ void kvm_hv_process_stimers(struct kvm_vcpu *vcpu);
+ 
+ void kvm_hv_setup_tsc_page(struct kvm *kvm,
+diff --unified --recursive --text --new-file ../../linux-6.7/arch/x86/kvm/svm/svm.c linux-6.7/arch/x86/kvm/svm/svm.c
+--- ../../linux-6.7/arch/x86/kvm/svm/svm.c	2024-01-07 21:18:38.000000000 +0100
++++ linux-6.7/arch/x86/kvm/svm/svm.c	2024-03-28 16:09:14.499024370 +0100
+@@ -104,6 +104,10 @@
+ 	{ .index = MSR_IA32_LASTINTFROMIP,		.always = false },
+ 	{ .index = MSR_IA32_LASTINTTOIP,		.always = false },
+ 	{ .index = MSR_IA32_XSS,			.always = false },
++	{ .index = MSR_IA32_MPERF,				.always = true },
++	{ .index = MSR_IA32_APERF,				.always = true },
++	{ .index = 0xC00000E7,					.always = true }, //MPERF_RO AMD
++	{ .index = 0xC00000E8,					.always = true }, //APERF_RO AMD
+ 	{ .index = MSR_EFER,				.always = false },
+ 	{ .index = MSR_IA32_CR_PAT,			.always = false },
+ 	{ .index = MSR_AMD64_SEV_ES_GHCB,		.always = true  },
+diff --unified --recursive --text --new-file ../../linux-6.7/arch/x86/kvm/svm/svm.h linux-6.7/arch/x86/kvm/svm/svm.h
+--- ../../linux-6.7/arch/x86/kvm/svm/svm.h	2024-01-07 21:18:38.000000000 +0100
++++ linux-6.7/arch/x86/kvm/svm/svm.h	2024-03-28 16:08:49.745467660 +0100
+@@ -30,7 +30,7 @@
+ #define	IOPM_SIZE PAGE_SIZE * 3
+ #define	MSRPM_SIZE PAGE_SIZE * 2
+ 
+-#define MAX_DIRECT_ACCESS_MSRS	47
++#define MAX_DIRECT_ACCESS_MSRS	51
+ #define MSRPM_OFFSETS	32
+ extern u32 msrpm_offsets[MSRPM_OFFSETS] __read_mostly;
+ extern bool npt_enabled;
