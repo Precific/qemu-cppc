@@ -98,3 +98,27 @@ diff --unified --recursive --text --new-file ../../linux-6.7/arch/x86/kvm/svm/sv
  #define MSRPM_OFFSETS	32
  extern u32 msrpm_offsets[MSRPM_OFFSETS] __read_mostly;
  extern bool npt_enabled;
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file ../../linux-6.7/arch/x86/kvm/vmx/vmx.c linux-6.7/arch/x86/kvm/vmx/vmx.c
+--- linux-6.6_unpatched/arch/x86/kvm/vmx/vmx.c	2024-04-01 18:58:59.141664982 +0200
++++ linux-6.6/arch/x86/kvm/vmx/vmx.c	2024-04-01 19:00:48.689376837 +0200
+@@ -179,6 +179,8 @@
+ 	MSR_CORE_C3_RESIDENCY,
+ 	MSR_CORE_C6_RESIDENCY,
+ 	MSR_CORE_C7_RESIDENCY,
++	MSR_IA32_MPERF,
++	MSR_IA32_APERF,
+ };
+ 
+ /*
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file ../../linux-6.7/arch/x86/kvm/vmx/vmx.h linux-6.7/arch/x86/kvm/vmx/vmx.h
+--- linux-6.6_unpatched/arch/x86/kvm/vmx/vmx.h	2024-04-01 18:58:59.141664982 +0200
++++ linux-6.6/arch/x86/kvm/vmx/vmx.h	2024-04-01 19:00:48.689376837 +0200
+@@ -357,7 +357,7 @@
+ 	struct lbr_desc lbr_desc;
+ 
+ 	/* Save desired MSR intercept (read: pass-through) state */
+-#define MAX_POSSIBLE_PASSTHROUGH_MSRS	16
++#define MAX_POSSIBLE_PASSTHROUGH_MSRS	18
+ 	struct {
+ 		DECLARE_BITMAP(read, MAX_POSSIBLE_PASSTHROUGH_MSRS);
+ 		DECLARE_BITMAP(write, MAX_POSSIBLE_PASSTHROUGH_MSRS);
