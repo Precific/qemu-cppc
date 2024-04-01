@@ -4,12 +4,15 @@ set -e
 OUTDIR=$(pwd)
 
 pushd qemu-arch-package/src
-QEMUDIR_UNPATCHED=../../qemu
+QEMUDIR_UNPATCHED=../../$QEMUVER
 QEMUDIR_PATCHED=$QEMUVER
-#QEMUDIR_UNPATCHED=$QEMUVER
-#rm -rf $QEMUDIR_UNPATCHED
-#tar -xf $QEMUVER.tar.xz
-#QEMUDIR_PATCHED=../../qemu
+
+if [ ! -d "$LINUXDIR_UNPATCHED" ]; then
+	popd
+	echo "ERROR: Could not find the unpatched directory at ./$QEMUVER to compare against qemu-arch-package/src/$QEMUVER"
+	echo "Hint: After download-sources-kvm.sh, copy qemu-arch-package/src/$QEMUVER to ./$QEMUVER."
+	exit 1
+fi
 
 diff --unified --recursive --text --new-file \
  --exclude=.git --exclude=roms --exclude=lcitool \

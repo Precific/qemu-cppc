@@ -1,9 +1,15 @@
 #!/bin/bash
 # Downloads the sources for QEMU.
+# Optional second argument: '-y' to overwrite existing qemu-arch-package subdirectory
 set -e
 source version.sh
+source util.sh
 
-rm -rf qemu-arch-package
+if [ -d qemu-arch-package ]; then
+	echo "Deleting existing qemu-arch-package"
+	ask_continue_or_exit
+	rm -rf qemu-arch-package
+fi
 
 if [ ! -d qemu-arch-package ]; then
 	git clone https://gitlab.archlinux.org/archlinux/packaging/packages/qemu qemu-arch-package
@@ -12,7 +18,7 @@ pushd qemu-arch-package
 git pull
 git checkout tags/$QEMUVER_PKG
 
-git apply ../qemu-arch_PKGBUILD_only-x86_64.diff || (echo "FAILED to apply PKGBUILD patch. This will likely build ALL QEMU targets."; sleep 3)
+git apply ../qemu-arch_PKGBUILD_only-x86_64.diff || (echo "FAILED to apply PKGBUILD patch. This will likely build ALL QEMU targets."; sleep 2)
 
 echo "====== Importing and trusting keys in temporary home ======"
 

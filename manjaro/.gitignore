@@ -1,3 +1,5 @@
 /kernel-manjaro-package*/
 /qemu-arch-package
 /bin-qemu-cppc
+/linux-*.*
+/make-patchfile_temp

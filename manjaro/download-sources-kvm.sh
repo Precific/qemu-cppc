@@ -1,16 +1,22 @@
 #!/bin/bash
 # Downloads the sources for Linux (containing KVM).
 # Optional argument: Manjaro linux kernel package name, e.g. linux66. By default, the package name is built from $KERNELVER_BRANCH (version.sh).
+# Optional second argument: '-y' to overwrite existing kernel-manjaro-package-<branch> subdirectory
 
+set -e
 source version.sh
+source util.sh
 
 ##Currently running package:
 #KERNELPKG_DEFAULT=$(mhwd-kernel -li | grep "Currently running" | grep -oP '\(\K[^\)]+')
 #From package branch
 KERNELPKG_DEFAULT=linux${KERNELVER_BRANCH//./}
-set -e
 
-rm -rf kernel-manjaro-package-${KERNELVER_BRANCH}
+if [ -d kernel-manjaro-package-${KERNELVER_BRANCH} ]; then
+	echo "Deleting existing kernel-manjaro-package-${KERNELVER_BRANCH}"
+	ask_continue_or_exit
+	rm -rf kernel-manjaro-package-${KERNELVER_BRANCH}
+fi
 
 git_get_main_branch () { #Source: David Foster, https://stackoverflow.com/a/67625120
     git branch | cut -c 3- | grep -E '^master$|^main$'

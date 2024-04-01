@@ -1,7 +1,13 @@
 #!/bin/bash
-source version.sh
-
 set -e
+# Optional argument: '-y' to not ask before unloading KVM
+source version.sh
+source util.sh
+
+if [ $AUTOYES -eq 0 ]; then
+	echo "This will unload the KVM kernel modules."
+	ask_continue_or_exit
+fi
 
 modprobe -r kvm_intel || :
 modprobe -r kvm_amd || :

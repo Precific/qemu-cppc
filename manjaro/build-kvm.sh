@@ -8,7 +8,7 @@ ls src/linux-${KERNELVER_BRANCH}/ 2> /dev/null || makepkg --nobuild
 cd src/linux-${KERNELVER_BRANCH}/
 patch -Np1 -i ${KVMPATCH} || :
 if [ ! -f "/usr/lib/modules/$KERNELVER/build/Module.symvers" ]; then
-	echo Missing Module.symvers from the kernel-devel package
+	echo "ERROR: Missing Module.symvers from the kernel-devel package"
 	exit 1
 fi
 [ -L Module.symvers ] && rm Module.symvers
