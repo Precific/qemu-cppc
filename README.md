@@ -2,15 +2,15 @@
 
 This repo contains QEMU and KVM patches that enable reporting of per-core performance indicators to x86_64 Windows guests through ACPI CPPC. The goal is to improve overall guest performance especially with heterogeneous CPU designs (Ryzen dual-CCD X3D chips [*tested*], Intel P+E-Core [*not tested*]) but also to expose the per-core 'maximum performance' boost metrics present on recent AMD Ryzen processors. 
 
-Windows, or specifically its performance control and monitoring drivers amdppm.sys, intelppm.sys [*not tested*] or the generic processr.sys use the CPPC `highest_perf` per-core attributes as hints for thread scheduling. In practice, if a program loads 8 threads, Windows 10 [*11 not tested*] will usually schedule those onto the 8 fastest cores by `highest_perf`, while background tasks are moved to the slowest cores. Energy profiles likely alter this behavior.
+Windows uses the CPPC `highest_perf` per-core attributes as hints for thread scheduling. The drivers responsible for these scheduling hints are amdppm.sys [*tested*], intelppm.sys [*not tested*] or the generic processr.sys [*not tested but likely to work*]. In practice, if a program loads 8 threads, Windows 10 [*11 not tested*] will usually schedule those onto the 8 fastest cores by `highest_perf`, while background tasks are moved to the slowest cores. Energy profiles likely alter this behavior.
 
-**Disclaimer**: These patches should not be considered suitable for productive use and may compromise reliability of the VM and, possibly, system security. These patches employ workarounds that depend on implementation details of the guest operating system and may break with updates. While I have not encountered any such issues myself, your mileage may vary.
+**Disclaimer**: These patches should not be considered suitable for productive use and may compromise reliability of the VMs and, possibly, system security. These patches employ workarounds that depend on implementation details of the guest operating system and may break with updates. While I have not encountered any such issues myself, your mileage may vary.
 
 The patches may cause issues with nested virtualization / virtualization-based security in the guest OS. Windows 11 has not been tested.
 
 ## Usage
 - The relevant patch files are in the root directory of this repo. There also are build and install instructions for Manjaro (Arch-based) in the [manjaro](manjaro) subdirectory.
-- Install the patched `kvm`, `kvm_amd`, `kvm_intel` kernel modules and `qemu-system-x86_64` application. 
+- Install the patched `kvm`, `kvm_amd`, `kvm_intel` kernel modules and `qemu-system-x86_64-cppc` application. 
 - Format the mapping from guest to host threads (`<vCPU>:<host_thread#>`) as a list separated by comma characters.
   
   For instance, in the libvirt domain configuration,
@@ -56,4 +56,4 @@ To make Windows use the CPPC performance values despite being run as a Hyper-V-e
 
 ### KVM patches
 - Adds the `CpuManagement` winload workaround that hides the `CpuManagement` flag for a set amount of reads to the Hyper-V CPUID for each VM boot.
-- Enables pass-through for the MPERF, APERF, MPERF_RO and APERF_RO MSRs, since the former two are also referenced by the ACPI _CPC objects emitted by the patched QEMU. These MSRs provide precise clocking information to the guest VM, which could conceivably be abused as a **side-channel**. 
+- Enables read/write pass-through for the MPERF, APERF, MPERF_RO and APERF_RO MSRs, since the former two are also referenced by the ACPI _CPC objects emitted by the patched QEMU. These MSRs provide precise clocking information to the guest VM, which could conceivably be abused as a **side-channel**. Writes to these MSRs (usually 0 as value) will be visible to the host and all other VMs, and may cause inconsistent frequency reporting.
