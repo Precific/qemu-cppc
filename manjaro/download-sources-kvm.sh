@@ -12,12 +12,6 @@ source util.sh
 #From package branch
 KERNELPKG_DEFAULT=linux${KERNELVER_BRANCH//./}
 
-if [ -d kernel-manjaro-package-${KERNELVER_BRANCH} ]; then
-	echo "Deleting existing kernel-manjaro-package-${KERNELVER_BRANCH}"
-	ask_continue_or_exit
-	rm -rf kernel-manjaro-package-${KERNELVER_BRANCH}
-fi
-
 git_get_main_branch () { #Source: David Foster, https://stackoverflow.com/a/67625120
     git branch | cut -c 3- | grep -E '^master$|^main$'
 }
@@ -64,7 +58,11 @@ if [ $found_kernelver -eq 0 ]; then
 	exit 1
 fi
 git checkout $commit_to_checkout
-#rm -rf "src/linux-${KERNELVER_BRANCH}"
+if [ -d "src/linux-${KERNELVER_BRANCH}" ]; then
+	echo "Deleting old kernel sources in kernel-manjaro-package-${KERNELVER_BRANCH}/src/linux-${KERNELVER_BRANCH}"
+	ask_continue_or_exit
+	rm -rf "src/linux-${KERNELVER_BRANCH}"
+fi
 # Downloads the sources, applies Manjaro's patches and config
 makepkg --nobuild
 popd

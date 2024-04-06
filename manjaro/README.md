@@ -22,7 +22,7 @@ Note: The patched QEMU should expects the patched KVM drivers to be loaded (but 
 
 Builds the KVM drivers for the current kernel version. This is based on the Manjaro kernel source repositories.
 
-In essence:
+To build and install (make sure to stop all KVM VMs on your system before installing):
 ```bash
 ./download-sources-kvm.sh
 ./build-kvm.sh
