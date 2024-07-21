@@ -27,6 +27,10 @@ KERNELVER_COMMITMSG=${KERNELVER%"-MANJARO"} #Remove -MANJARO from the version st
 git checkout $KERNEL_MAIN_BRANCH
 git pull
 
+#List of non-[pkg-upd] commits to disregard
+KNOWNBROKEN_LIST=""
+KNOWNBROKEN_LIST+=" a13b9da9dd7a4d810bfda661e2b269c887e48202" #6.10.0-1 with config 6.10.0-2 and invalid sha256sum
+
 #found_kernelver=1 <=> Found the package for $KERNELVER.
 found_kernelver=0
 # The [pkg-upd] commit may be followed by other important commits for that kernel version.
@@ -49,8 +53,18 @@ for commit in $(git rev-list $KERNEL_MAIN_BRANCH); do
 		fi
 		recenthasmsg_other=0
 	else
-		recenthasmsg_other=1
-		commit_to_checkout=$commit
+		isbroken=0
+		for KNOWNBROKEN in ${KNOWNBROKEN_LIST}; do
+			if [ "$commit" == "$KNOWNBROKEN" ]; then
+				echo "Ignoring known-broken commit $commit ($MSG)"
+				isbroken=1
+				break
+			fi
+		done
+		if [ $isbroken -eq 0 ]; then
+			recenthasmsg_other=1
+			commit_to_checkout=$commit
+		fi
 	fi
 done
 if [ $found_kernelver -eq 0 ]; then
