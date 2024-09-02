@@ -69,6 +69,7 @@ for commit in $(git rev-list $KERNEL_MAIN_BRANCH); do
 done
 if [ $found_kernelver -eq 0 ]; then
 	echo ERROR: Could not find the selected kernel version in the kernel package repository. >&2
+	echo You can try manually checking out the correct commit in kernel-manjaro-package-${KERNELVER_BRANCH}. Clear src/linux-${KERNELVER_BRANCH} and then run \'makepkg --nobuild\'. >&2
 	exit 1
 fi
 git checkout $commit_to_checkout
