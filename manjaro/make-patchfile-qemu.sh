@@ -15,7 +15,7 @@ if [ ! -d "$QEMUDIR_UNPATCHED" ]; then
 fi
 
 diff --unified --recursive --text --new-file \
- --exclude=.git --exclude=roms --exclude='*.orig' --exclude='*.rej' --exclude=lcitool \
+ --exclude=.git --exclude=roms --exclude=docs --exclude='*.orig' --exclude='*.rej' --exclude='*.pyc' --exclude=lcitool \
  $QEMUDIR_UNPATCHED $QEMUDIR_PATCHED > "$OUTDIR/$QEMUVER-cppc.patch" || :
 #diff for some reason returns non-zero even if everything ends up fine?
 popd
