@@ -3,3 +3,4 @@
 /bin-qemu-cppc
 /linux-*.*
 /make-patchfile_temp
+/.kernelver

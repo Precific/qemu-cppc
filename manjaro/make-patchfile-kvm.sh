@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-source version.sh
+source version-kernel.sh
 
 OUTDIR=$(pwd)
 PACKAGE_SUBDIR=kernel-manjaro-package-${KERNELVER_BRANCH}

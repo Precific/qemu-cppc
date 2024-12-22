@@ -4,7 +4,8 @@
 # Optional second argument: '-y' to overwrite existing kernel-manjaro-package-<branch> subdirectory
 
 set -e
-source version.sh
+rm -f .kernelver
+source version-kernel.sh
 source util.sh
 
 ##Currently running package:
@@ -73,17 +74,12 @@ if [ $found_kernelver -eq 0 ]; then
 	exit 1
 fi
 git checkout $commit_to_checkout
-if [ -d "src/linux-${KERNELVER_BRANCH}" ]; then
-	echo "Deleting old kernel sources in kernel-manjaro-package-${KERNELVER_BRANCH}/src/linux-${KERNELVER_BRANCH}"
+shopt -s nullglob
+KERNELSRCDIRS=(src/linux-*/)
+if [ ${#KERNELSRCDIRS[@]} -gt 0 ]; then
+	echo "Deleting old kernel sources in kernel-manjaro-package-${KERNELVER_BRANCH}/src/linux-*"
 	ask_continue_or_exit
-	rm -rf "src/linux-${KERNELVER_BRANCH}"
-fi
-
-if [ "$commit_to_checkout" == "15726e9382d6de4d53f0d87c835a25128ea281ea" ]; then
-	echo "The PKGBUILD file of manjaro 6.11.0-6 has 404 URLs for upstream kernel patch files." >&2
-	echo "In kernel-manjaro-package-${KERNELVER_BRANCH}," >&2
-	echo "append \"?id=30b22a5b4b901c7212db130ae990cdd01e113fe1\" to the upstream patch URLs, then continue." >&2
-	ask_continue_or_exit
+	rm -rf "${KERNELSRCDIRS[@]}"
 fi
 
 # Downloads the sources, applies Manjaro's patches and config

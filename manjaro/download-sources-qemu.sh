@@ -2,7 +2,7 @@
 # Downloads the sources for QEMU.
 # Optional second argument: '-y' to overwrite existing qemu-arch-package subdirectory
 set -e
-source version.sh
+source version-qemu.sh
 source util.sh
 
 if [ -d qemu-arch-package ]; then

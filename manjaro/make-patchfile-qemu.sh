@@ -1,4 +1,5 @@
-source version.sh
+#!/bin/bash
+source version-qemu.sh
 
 set -e
 OUTDIR=$(pwd)

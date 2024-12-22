@@ -2,7 +2,7 @@
 # Optional argument: '-y' to overwrite existing QEMU source directories
 set -e
 
-source version.sh
+source version-qemu.sh
 source util.sh
 
 QEMUOUTDIR=$(pwd)/bin-qemu-cppc
