@@ -6,13 +6,14 @@ shopt -s nullglob
 
 pushd kernel-manjaro-package-${KERNELVER_BRANCH}
 SRCSUBDIRS=(src/linux-*/)
-[ ${#SRCSUBDIRS[@]} -eq 1 ] || makepkg --nobuild
+[ ${#SRCSUBDIRS[@]} -ge 1 ] || makepkg --nobuild
 SRCSUBDIRS=(src/linux-*/)
 if [ ${#SRCSUBDIRS[@]} -lt 1 ]; then
         echo "ERROR: Cannot find the extracted linux source directory"
         exit 1
 elif [ ${#SRCSUBDIRS[@]} -gt 1 ]; then
         echo "ERROR: Found several extracted linux source directories"
+        exit 1
 fi
 SRCSUBDIR=${SRCSUBDIRS[0]}
 cd ${SRCSUBDIR}

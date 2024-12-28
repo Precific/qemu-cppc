@@ -18,7 +18,8 @@ MODULES_REPLACE=()
 
 NEEDS_RELOAD_VFIOPCI=0
 if [ -f "${SRCSUBDIR}/drivers/vfio/pci/vfio-pci-core.ko" ]; then
-	MODULES_REPLACE+=("drivers/vfio/pci/vfio-pci-core.ko")
+	#MODULES_REPLACE+=("drivers/vfio/pci/vfio-pci-core.ko")
+	MODULES_UPDATE+=("${SRCSUBDIR}/drivers/vfio/pci/vfio-pci-core.ko")
 	NEEDS_RELOAD_VFIOPCI=1
 fi
 
@@ -49,13 +50,16 @@ for MODULE_REPLACE in "${MODULES_REPLACE[@]}"; do
 	out="/usr/lib/modules/${KERNELVER}/kernel/${MODULE_REPLACE}"
 	#Shouldn't overwrite the original module, since ours isn't compressed and doesn't have the .zst ending.
 	for out_existing in "${out}"*; do
-		mv -f "${out_existing}" "$(dirname "${out_existing}")/BAK_$(basename "${out_existing}")"
+		mv -f "${out_existing}" "$(dirname "${out_existing}")/$(basename "${out_existing}").bak"
 	done
 	cp "${in}" "${out}"
 done
 
+depmod -a "${KERNELVER}"
+echo "Regenerating initramfs."
+mkinitcpio -p "$MKINITCPIO_NAME" || :
+
 if [ $RELOAD_MODULES -eq 1 ]; then
-	depmod -a
 	modprobe kvm && echo "Inserted kvm"
 	modprobe kvm_amd && echo "Inserted kvm_amd" || :
 	modprobe kvm_intel && echo "Inserted kvm_intel" || :
@@ -65,5 +69,3 @@ if [ $RELOAD_MODULES -eq 1 ]; then
 		echo "Note: vfio-pci-core needs to be reloaded, e.g. by a reboot."
 	fi
 fi
-echo "Regenerating initramfs."
-mkinitcpio -p "$MKINITCPIO_NAME"
