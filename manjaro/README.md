@@ -26,5 +26,6 @@ To build and install (make sure to stop all KVM VMs on your system before instal
 ```bash
 ./download-sources-kvm.sh
 ./build-kvm.sh
+# Note: install-kvm.sh also calls depmod and regenerates initramfs
 sudo ./install-kvm.sh
 ```

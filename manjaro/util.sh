@@ -31,11 +31,13 @@ function ask_continue_or_exit {
 
 # Reads each line and prepends a set number of spaces as indentation.
 # Intended for use by piping in from the fmt command.
-# args: $1 - Indentation width
+# args:
+#  $1 - Indentation width
+#  $2 (optional) - 0 if indentation should also apply to the first line, 1 default
 function readprint_multiline {
-	local FIRSTLINE=1
 	local LINEINDENTW="$1"
-	while IFS="" read line; do
+	local FIRSTLINE=${2:-1}
+	while IFS="" read -r line; do
 		[ $FIRSTLINE -eq 1 ] || printf "%${LINEINDENTW}s" ""
 		printf "%s\n" "$line"
 		FIRSTLINE=0

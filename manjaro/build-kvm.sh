@@ -20,18 +20,23 @@ SRCSUBDIR=${SRCSUBDIRS[0]}
 cd ${SRCSUBDIR}
 
 BUILD_VFIOPCICORE=0
+if [ "${patchsel[VFIOPCIREGRESSION612]+1}" ]; then
+	# Build vfio-pci if the regression patch is available for the kernel, even if disabled.
+	# (allows rebuilding without the patch)
+	BUILD_VFIOPCICORE=1
+fi
+
 if [ "${KVMPATCH_CPPC}" != "" ] && [ ${patchsel[KVMCPPC]:-0} -eq 1 ]; then
-	echo "Applying CPPC KVM patch"
-	patch -Np1 -i "${KVMPATCH_CPPC}"
+	echo "- Applying CPPC KVM patch"
+	patch -Np1 -i "${KVMPATCH_CPPC}" > >(readprint_multiline 2 0) 2> >(readprint_multiline 2 0 1>&2)
 fi
 if [ "${KVMPATCH_REGRESSION_612}" != "" ] && [ ${patchsel[KVMREGRESSION612]:-0} -eq 1 ]; then
-	echo "Applying 6.12 AMD KVM regression patch"
-	patch -Np1 -i "${KVMPATCH_REGRESSION_612}"
+	echo "- Applying 6.12 AMD KVM regression patch"
+	patch -Np1 -i "${KVMPATCH_REGRESSION_612}" > >(readprint_multiline 2 0) 2> >(readprint_multiline 2 0 1>&2)
 fi
 if [ "${VFIOPCICORE_REGRESSION_612}" != "" ] && [ ${patchsel[VFIOPCIREGRESSION612]:-0} -eq 1 ]; then
-	echo "Applying 6.12 vfio-pci-core regression patch"
-	patch -Np1 -i "${VFIOPCICORE_REGRESSION_612}"
-	BUILD_VFIOPCICORE=1
+	echo "- Applying 6.12 vfio-pci-core regression patch"
+	patch -Np1 -i "${VFIOPCICORE_REGRESSION_612}" > >(readprint_multiline 2 0) 2> >(readprint_multiline 2 0 1>&2)
 fi
 if [ ! -f "/usr/lib/modules/$KERNELVER/build/Module.symvers" ]; then
 	echo "ERROR: Missing Module.symvers from the kernel-devel package" >&2
