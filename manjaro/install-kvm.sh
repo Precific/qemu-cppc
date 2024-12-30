@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 # Optional argument: '-y' to not ask before unloading KVM
+source unsets.sh
 source version-kernel.sh
 source util.sh
 
@@ -8,7 +9,7 @@ shopt -s nullglob
 
 SRCSUBDIRS=(kernel-manjaro-package-${KERNELVER_BRANCH}/src/linux-*/)
 if [ ${#SRCSUBDIRS[@]} -ne 1 ]; then
-	echo "Unable to find the linux source directory"
+	echo "ERROR: Unable to find the linux source directory" >&2
 	exit 1
 fi
 SRCSUBDIR="${SRCSUBDIRS[0]::-1}"

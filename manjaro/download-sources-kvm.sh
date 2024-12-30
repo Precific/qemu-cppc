@@ -1,12 +1,22 @@
 #!/bin/bash
-# Downloads the sources for Linux (containing KVM).
+# Downloads the sources for Linux (containing KVM and other relevant modules).
 # Optional argument: Manjaro linux kernel package name, e.g. linux66. By default, the package name is built from $KERNELVER_BRANCH (version.sh).
 # Optional second argument: '-y' to overwrite existing kernel-manjaro-package-<branch> subdirectory
 
 set -e
+source unsets.sh
 rm -f .kernelver
 source version-kernel.sh
 source util.sh
+
+if [ $AUTOYES -ne 1 ] && [ ${PATCHSEL_INTERACTIVE} -ne 1 ]; then
+	interactive_patchsel
+fi
+echo "Patch selection:"
+for patchkey in "${patchsel_keys[@]}"; do
+	echo "- ${patchkey}=${patchsel[$patchkey]}"
+done
+echo "----------"
 
 ##Currently running package:
 #KERNELPKG_DEFAULT=$(mhwd-kernel -li | grep "Currently running" | grep -oP '\(\K[^\)]+')
@@ -69,8 +79,8 @@ for commit in $(git rev-list $KERNEL_MAIN_BRANCH); do
 	fi
 done
 if [ $found_kernelver -eq 0 ]; then
-	echo ERROR: Could not find the selected kernel version in the kernel package repository. >&2
-	echo You can try manually checking out the correct commit in kernel-manjaro-package-${KERNELVER_BRANCH}. Clear src/linux-${KERNELVER_BRANCH} and then run \'makepkg --nobuild\'. >&2
+	echo "ERROR: Could not find the selected kernel version in the kernel package repository." >&2
+	echo "You can try manually checking out the correct commit in kernel-manjaro-package-${KERNELVER_BRANCH}. Clear src/linux-* and then run \'makepkg --nobuild\'." >&2
 	exit 1
 fi
 git checkout $commit_to_checkout
