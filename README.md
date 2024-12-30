@@ -1,4 +1,5 @@
 ## QEMU/KVM: ACPI CPPC patches for Windows guests
+(and vfio-related kernel patches)
 
 This repo contains QEMU and KVM patches that enable reporting of per-core performance indicators to x86_64 Windows guests through ACPI CPPC. The goal is to improve overall guest performance especially with heterogeneous CPU designs (Ryzen dual-CCD X3D chips [*tested*], Intel P+E-Core [*not tested*]) but also to expose the per-core 'maximum performance' boost metrics present on recent AMD Ryzen processors. 
 
@@ -37,10 +38,11 @@ The patches may cause issues with nested virtualization / virtualization-based s
 ### Tested configurations
 - AMD Ryzen 7950X3D CPU
   - Intel P-/E-Core architectures may also benefit from these patches, but have not been tested. Whether those work out of the box should largely depend on how the intelppm.sys driver behaves. For instance, Intel Thread Director will not be present in the VM. The generic processr.sys driver is more likely to work here.
-- QEMU 8.2.2
-- Host Linux kernels: `6.6.19-1-MANJARO` (patches for 6.6, 6.7 and 6.8)
+- QEMU 8.2.2 .. 9.1.2
+- Host Linux kernels: `6.6.19-1-MANJARO` (patches for 6.6, 6.7 and 6.8), .., `6.13.0-rc2-1-MANJARO`
 - Guest OS: Windows 10 22H2
   - Windows 11 not tested (feel free to reach out)
+  - Linux guests currently reject the CPPC data as invalid
 
 ## Patch details
 
