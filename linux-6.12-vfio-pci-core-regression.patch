@@ -1,99 +1,14 @@
-diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.12_unpatched/drivers/vfio/pci/vfio_pci_core.c linux-6.12/drivers/vfio/pci/vfio_pci_core.c
---- linux-6.12_unpatched/drivers/vfio/pci/vfio_pci_core.c	2024-12-21 18:59:21.720854010 +0100
-+++ linux-6.12/drivers/vfio/pci/vfio_pci_core.c	2024-12-21 18:59:19.270812331 +0100
-@@ -20,7 +20,6 @@
- #include <linux/mutex.h>
- #include <linux/notifier.h>
- #include <linux/pci.h>
--#include <linux/pfn_t.h>
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
- #include <linux/types.h>
-@@ -1658,20 +1657,14 @@
- 	return (pci_resource_start(vdev->pdev, index) >> PAGE_SHIFT) + pgoff;
- }
- 
--static vm_fault_t vfio_pci_mmap_huge_fault(struct vm_fault *vmf,
--					   unsigned int order)
-+static vm_fault_t vfio_pci_mmap_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct vfio_pci_core_device *vdev = vma->vm_private_data;
+diff --git a/drivers/vfio/pci/vfio_pci_core.c b/drivers/vfio/pci/vfio_pci_core.c
+index 1ab58da9f38a..bdfdc8ee4c2b 100644
+--- a/drivers/vfio/pci/vfio_pci_core.c
++++ b/drivers/vfio/pci/vfio_pci_core.c
+@@ -1661,7 +1661,8 @@ static vm_fault_t vfio_pci_mmap_huge_fault(struct vm_fault *vmf,
  	unsigned long pfn, pgoff = vmf->pgoff - vma->vm_pgoff;
-+	unsigned long addr = vma->vm_start;
  	vm_fault_t ret = VM_FAULT_SIGBUS;
  
 -	if (order && (vmf->address & ((PAGE_SIZE << order) - 1) ||
--		      vmf->address + (PAGE_SIZE << order) > vma->vm_end)) {
--		ret = VM_FAULT_FALLBACK;
--		goto out;
--	}
--
- 	pfn = vma_to_pfn(vma);
- 
- 	down_read(&vdev->memory_lock);
-@@ -1679,49 +1672,30 @@
- 	if (vdev->pm_runtime_engaged || !__vfio_pci_memory_enabled(vdev))
- 		goto out_unlock;
- 
--	switch (order) {
--	case 0:
--		ret = vmf_insert_pfn(vma, vmf->address, pfn + pgoff);
--		break;
--#ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
--	case PMD_ORDER:
--		ret = vmf_insert_pfn_pmd(vmf, __pfn_to_pfn_t(pfn + pgoff,
--							     PFN_DEV), false);
--		break;
--#endif
--#ifdef CONFIG_ARCH_SUPPORTS_PUD_PFNMAP
--	case PUD_ORDER:
--		ret = vmf_insert_pfn_pud(vmf, __pfn_to_pfn_t(pfn + pgoff,
--							     PFN_DEV), false);
--		break;
--#endif
--	default:
--		ret = VM_FAULT_FALLBACK;
-+	ret = vmf_insert_pfn(vma, vmf->address, pfn + pgoff);
-+	if (ret & VM_FAULT_ERROR)
-+		goto out_unlock;
-+
-+	/*
-+	 * Pre-fault the remainder of the vma, abort further insertions and
-+	 * supress error if fault is encountered during pre-fault.
-+	 */
-+	for (; addr < vma->vm_end; addr += PAGE_SIZE, pfn++) {
-+		if (addr == vmf->address)
-+			continue;
-+
-+		if (vmf_insert_pfn(vma, addr, pfn) & VM_FAULT_ERROR)
-+			break;
- 	}
- 
- out_unlock:
- 	up_read(&vdev->memory_lock);
--out:
--	dev_dbg_ratelimited(&vdev->pdev->dev,
--			   "%s(,order = %d) BAR %ld page offset 0x%lx: 0x%x\n",
--			    __func__, order,
--			    vma->vm_pgoff >>
--				(VFIO_PCI_OFFSET_SHIFT - PAGE_SHIFT),
--			    pgoff, (unsigned int)ret);
- 
- 	return ret;
- }
- 
--static vm_fault_t vfio_pci_mmap_page_fault(struct vm_fault *vmf)
--{
--	return vfio_pci_mmap_huge_fault(vmf, 0);
--}
--
- static const struct vm_operations_struct vfio_pci_mmap_ops = {
--	.fault = vfio_pci_mmap_page_fault,
--#ifdef CONFIG_ARCH_SUPPORTS_HUGE_PFNMAP
--	.huge_fault = vfio_pci_mmap_huge_fault,
--#endif
-+	.fault = vfio_pci_mmap_fault,
- };
- 
- int vfio_pci_core_mmap(struct vfio_device *core_vdev, struct vm_area_struct *vma)
++	if (order && (pgoff & ((1 << order) - 1) ||
++		      vmf->address & ((PAGE_SIZE << order) - 1) ||
+ 		      vmf->address + (PAGE_SIZE << order) > vma->vm_end)) {
+ 		ret = VM_FAULT_FALLBACK;
+ 		goto out;

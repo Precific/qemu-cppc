@@ -95,10 +95,11 @@ if [ ${KERNELVER:0:5} == '6.12.' ] || [ ${KERNELVER:0:5} == '6.13.' ]; then
 	patchsel_desc[KVMREGRESSION612]="KVM: Kernel 6.12+ regression fix (affects some AMD CPU systems but not all)"
 	patchsel_keys+=(KVMREGRESSION612)
 	
-	#Undo commit f9e54c3a2f5b79ecc57c7bc7d0d3521e461a2101 "vfio/pci: implement huge_fault support", first included in 6.12
+	#Fix regression from commit f9e54c3a2f5b79ecc57c7bc7d0d3521e461a2101 "vfio/pci: implement huge_fault support", first included in 6.12
+	# Patch by Alex Williamson, https://lore.kernel.org/regressions/20241231090733.5cc5504a.alex.williamson@redhat.com/
 	VFIOPCICORE_REGRESSION_612=$(pwd)/../linux-6.12-vfio-pci-core-regression.patch
 	patchsel[VFIOPCIREGRESSION612]=X1
-	patchsel_desc[VFIOPCIREGRESSION612]="vfio-pci: Kernel 6.12+ regression fix (affects some systems but not all)"
+	patchsel_desc[VFIOPCIREGRESSION612]="vfio-pci: Kernel 6.12+ regression fix for qemu <= 9.1"
 	patchsel_keys+=(VFIOPCIREGRESSION612)
 fi
 
