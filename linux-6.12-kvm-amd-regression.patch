@@ -1,7 +1,8 @@
-diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.12_unpatched/arch/x86/kvm/svm/svm.c linux-6.12/arch/x86/kvm/svm/svm.c
+diff --git a/arch/x86/kvm/svm/svm.c b/arch/x86/kvm/svm/svm.c
+index dd15cc635655..21dacd312779 100644
 --- a/arch/x86/kvm/svm/svm.c
 +++ b/arch/x86/kvm/svm/svm.c
-@@ -3201,13 +3201,8 @@ static int svm_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr)
+@@ -3201,15 +3201,6 @@ static int svm_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr)
  		if (data & ~supported_de_cfg)
  			return 1;
  
@@ -12,8 +13,8 @@ diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file l
 -		 * is simply a reflection of hardware capabilities.
 -		 */
 -		if (!msr->host_initiated && data != svm->msr_decfg)
-+		/* Don't allow the guest to change a bit, #GP */
-+		if (!msr->host_initiated && (data ^ supported_de_cfg))
- 			return 1;
- 
+-			return 1;
+-
  		svm->msr_decfg = data;
+ 		break;
+ 	}

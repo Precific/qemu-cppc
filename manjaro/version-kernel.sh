@@ -86,20 +86,21 @@ patchsel_desc[KVMCPPC]="KVM: CPPC support hacks"
 patchsel_keys+=(KVMCPPC)
 
 KVMPATCH_REGRESSION_612=""
-VFIOPCICORE_REGRESSION_612=""
-if [ ${KERNELVER:0:5} == '6.12.' ] || [ ${KERNELVER:0:5} == '6.13.' ]; then
-	#Apply patch by SimonP, see https://bbs.archlinux.org/viewtopic.php?id=301352&p=2
-	#NOTE: Will likely get fixed at some point in the 6.12 (LTS) cycle, maybe 6.13 too.
+if [ ${KERNELVER:0:5} == '6.12.' ] || ([ ${KERNELVER:0:9} == '6.13.0-rc' ] && [ ${KERNELVER:9:1} -lt 4 ]); then
+	#Apply patch by Sean Christopherson, see https://lore.kernel.org/kvm/20241211172952.1477605-1-seanjc@google.com/
+	#Patch is included in 6.13-rc4.
 	KVMPATCH_REGRESSION_612=$(pwd)/../linux-6.12-kvm-amd-regression.patch
 	patchsel[KVMREGRESSION612]=X0
-	patchsel_desc[KVMREGRESSION612]="KVM: Kernel 6.12+ regression fix (affects some AMD CPU systems but not all)"
+	patchsel_desc[KVMREGRESSION612]="KVM: Kernel 6.12+ regression fix (affects some AMD CPU systems, depends on VM config)"
 	patchsel_keys+=(KVMREGRESSION612)
-	
+fi
+VFIOPCICORE_REGRESSION_612=""
+if [ ${KERNELVER:0:5} == '6.12.' ] || [ ${KERNELVER:0:5} == '6.13.' ]; then
 	#Fix regression from commit f9e54c3a2f5b79ecc57c7bc7d0d3521e461a2101 "vfio/pci: implement huge_fault support", first included in 6.12
-	# Patch by Alex Williamson, https://lore.kernel.org/regressions/20241231090733.5cc5504a.alex.williamson@redhat.com/
+	# Patch by Alex Williamson, https://lore.kernel.org/lkml/20250102183416.1841878-1-alex.williamson@redhat.com/
 	VFIOPCICORE_REGRESSION_612=$(pwd)/../linux-6.12-vfio-pci-core-regression.patch
 	patchsel[VFIOPCIREGRESSION612]=X1
-	patchsel_desc[VFIOPCIREGRESSION612]="vfio-pci: Kernel 6.12+ regression fix for qemu <= 9.1"
+	patchsel_desc[VFIOPCIREGRESSION612]="vfio-pci: Kernel 6.12+ regression fix for QEMU <= 9.1.x (PCIe BAR related)"
 	patchsel_keys+=(VFIOPCIREGRESSION612)
 fi
 
