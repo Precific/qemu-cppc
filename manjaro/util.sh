@@ -118,7 +118,7 @@ function interactive_toggle_element_list {
 			printf "%s" "$ENTRYPREFIX"
 			local ENTRYPREFIX_LEN=${#ENTRYPREFIX}
 			#Print entry description with multi-line formatting as needed
-			echo "${KEYDESCS[$elementkey]}" | fmt -w $(($NCOLS<=$ENTRYPREFIX_LEN ? 1 : ($NCOLS - $ENTRYPREFIX_LEN))) | readprint_multiline ${#ENTRYPREFIX}
+			echo "${KEYDESCS[$elementkey]:-$elementkey}" | fmt -w $(($NCOLS<=$ENTRYPREFIX_LEN ? 1 : ($NCOLS - $ENTRYPREFIX_LEN))) | readprint_multiline ${#ENTRYPREFIX}
 			IDX=$(($IDX + 1))
 		done
 
