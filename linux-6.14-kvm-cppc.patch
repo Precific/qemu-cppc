@@ -47,9 +47,9 @@ diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file l
 +		// Prevent requirement for nested Hyper-V;
 +		//  if Hyper-V is not enabled but HV_CPU_MANAGEMENT is,
 +		//  Windows refuses to boot.
-+		// The check is usually 2 HYPERV_CPUID_FEATURES
++		// The check is usually 2(Win10)/5(Win11) HYPERV_CPUID_FEATURES
 +		//  calls after enabling hypercalls (winload).
-+		if (hv_vcpu->cppc_hack_counter >= 4)
++		if (hv_vcpu->cppc_hack_counter > 5)
 +			return;
 +		if (function == HYPERV_CPUID_FEATURES)
 +			++hv_vcpu->cppc_hack_counter;

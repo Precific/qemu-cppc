@@ -1712,7 +1712,7 @@ diff --unified --recursive --text --new-file '--exclude=.git' '--exclude=roms' '
  
 +    /*if (cppc_get_device() != NULL)*/ {
 +        //TODO: Remove this, instead use the hv-cppc-stub property.
-+        cpu->hyperv_features |= BIT(HYPERV_FEAT_CPPC_STUB);
++        //cpu->hyperv_features |= BIT(HYPERV_FEAT_CPPC_STUB);
 +    }
 +
      if (cpu->hyperv_passthrough) {
@@ -1958,3 +1958,37 @@ diff --unified --recursive --text --new-file '--exclude=.git' '--exclude=roms' '
  #endif /* CONFIG_KVM */
  
  void kvm_pc_setup_irq_routing(bool pci_enabled);
+--- ../../qemu-10.0.0/system/vl.c	2025-06-03 15:37:58.514004460 +0200
++++ qemu-10.0.0/system/vl.c	2025-06-03 15:38:06.873641555 +0200
+@@ -2936,7 +2936,21 @@
+             switch(popt->index) {
+             case QEMU_OPTION_cpu:
+                 /* hw initialization will check this */
+-                cpu_option = optarg;
++                if (cpu_option) {
++                    const char *old_cpu_option = cpu_option;
++                    size_t cpu_option_buf_len = strlen(old_cpu_option) + 1 + strlen(optarg) + 1;
++                    char *new_cpu_option = malloc(cpu_option_buf_len * sizeof(char));
++                    if (new_cpu_option != NULL) {
++                        strcpy(new_cpu_option, old_cpu_option);
++                        strcat(new_cpu_option, ",");
++                        strcat(new_cpu_option, optarg);
++                    }
++                    cpu_option = new_cpu_option;
++                    free(old_cpu_option);
++                }
++                else {
++                    cpu_option = strdup(optarg);
++                }
+                 break;
+             case QEMU_OPTION_hda:
+             case QEMU_OPTION_hdb:
+@@ -3826,6 +3840,8 @@
+     current_machine->cpu_type = machine_class_default_cpu_type(machine_class);
+     if (cpu_option) {
+         current_machine->cpu_type = parse_cpu_option(cpu_option);
++        free((char*)cpu_option);
++        cpu_option = NULL;
+     }
+     /* NB: for machine none cpu_type could STILL be NULL here! */
+ 
