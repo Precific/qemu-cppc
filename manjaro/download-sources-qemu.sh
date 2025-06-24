@@ -18,7 +18,7 @@ pushd qemu-arch-package
 git pull
 git checkout tags/$QEMUVER_PKG
 
-git apply ../qemu-arch_PKGBUILD_only-x86_64.diff || (echo "FAILED to apply PKGBUILD patch. This will likely build ALL QEMU targets."; sleep 2)
+(git apply ../qemu-arch_PKGBUILD_only-x86_64.diff || git apply ../qemu-arch_PKGBUILD_only-x86_64_2.diff) && (echo "Managed to apply a PKGBUILD patch.")  || (echo "FAILED to apply PKGBUILD patch. This will likely build ALL QEMU targets."; sleep 2)
 
 echo "====== Importing and trusting keys in temporary home ======"
 
