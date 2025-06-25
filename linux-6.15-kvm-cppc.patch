@@ -1,7 +1,7 @@
-diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.9_unpatched/arch/x86/include/asm/kvm_host.h linux-6.9/arch/x86/include/asm/kvm_host.h
---- linux-6.9_unpatched/arch/x86/include/asm/kvm_host.h	2024-07-21 18:02:09.303849027 +0200
-+++ linux-6.9/arch/x86/include/asm/kvm_host.h	2024-07-21 18:02:11.643924686 +0200
-@@ -697,6 +697,8 @@
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.15_unpatched/arch/x86/include/asm/kvm_host.h linux-6.15/arch/x86/include/asm/kvm_host.h
+--- linux-6.15_unpatched/arch/x86/include/asm/kvm_host.h	2025-06-25 20:54:10.743519686 +0200
++++ linux-6.15/arch/x86/include/asm/kvm_host.h	2025-06-25 20:54:15.474128875 +0200
+@@ -702,6 +702,8 @@
  		u64 vm_id;
  		u32 vp_id;
  	} nested;
@@ -10,20 +10,20 @@ diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file l
  };
  
  struct kvm_hypervisor_cpuid {
-diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.9_unpatched/arch/x86/kvm/cpuid.c linux-6.9/arch/x86/kvm/cpuid.c
---- linux-6.9_unpatched/arch/x86/kvm/cpuid.c	2024-07-21 18:02:09.317182792 +0200
-+++ linux-6.9/arch/x86/kvm/cpuid.c	2024-07-21 18:02:11.657258449 +0200
-@@ -1566,6 +1566,7 @@
- 			if (kvm_hv_invtsc_suppressed(vcpu))
- 				*edx &= ~SF(CONSTANT_TSC);
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.15_unpatched/arch/x86/kvm/cpuid.c linux-6.15/arch/x86/kvm/cpuid.c
+--- linux-6.15_unpatched/arch/x86/kvm/cpuid.c	2025-06-25 20:54:10.755141471 +0200
++++ linux-6.15/arch/x86/kvm/cpuid.c	2025-06-25 20:54:15.519514961 +0200
+@@ -2023,6 +2023,7 @@
+ 				*eax = vcpu->arch.hw_tsc_khz;
+ 			}
  		}
 +		kvm_hv_override_cpuid(vcpu, function, eax, ebx, ecx, edx);
  	} else {
  		*eax = *ebx = *ecx = *edx = 0;
  		/*
-diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.9_unpatched/arch/x86/kvm/hyperv.h linux-6.9/arch/x86/kvm/hyperv.h
---- linux-6.9_unpatched/arch/x86/kvm/hyperv.h	2024-07-21 18:02:09.317182792 +0200
-+++ linux-6.9/arch/x86/kvm/hyperv.h	2024-07-21 18:02:11.657258449 +0200
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.15_unpatched/arch/x86/kvm/hyperv.h linux-6.15/arch/x86/kvm/hyperv.h
+--- linux-6.15_unpatched/arch/x86/kvm/hyperv.h	2025-06-25 20:54:10.755319196 +0200
++++ linux-6.15/arch/x86/kvm/hyperv.h	2025-06-25 20:54:15.521225502 +0200
 @@ -176,6 +176,47 @@
  	return !(to_kvm_hv(vcpu->kvm)->hv_invtsc_control & HV_EXPOSE_INVARIANT_TSC);
  }
@@ -72,10 +72,10 @@ diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file l
  void kvm_hv_process_stimers(struct kvm_vcpu *vcpu);
  
  void kvm_hv_setup_tsc_page(struct kvm *kvm,
-diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.9_unpatched/arch/x86/kvm/svm/svm.c linux-6.9/arch/x86/kvm/svm/svm.c
---- linux-6.9_unpatched/arch/x86/kvm/svm/svm.c	2024-07-21 18:02:09.317182792 +0200
-+++ linux-6.9/arch/x86/kvm/svm/svm.c	2024-07-21 18:02:11.660591891 +0200
-@@ -105,6 +105,10 @@
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.15_unpatched/arch/x86/kvm/svm/svm.c linux-6.15/arch/x86/kvm/svm/svm.c
+--- linux-6.15_unpatched/arch/x86/kvm/svm/svm.c	2025-06-25 20:54:10.756275133 +0200
++++ linux-6.15/arch/x86/kvm/svm/svm.c	2025-06-25 20:54:15.526162338 +0200
+@@ -107,6 +107,10 @@
  	{ .index = MSR_IA32_LASTINTFROMIP,		.always = false },
  	{ .index = MSR_IA32_LASTINTTOIP,		.always = false },
  	{ .index = MSR_IA32_XSS,			.always = false },
@@ -86,10 +86,10 @@ diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file l
  	{ .index = MSR_EFER,				.always = false },
  	{ .index = MSR_IA32_CR_PAT,			.always = false },
  	{ .index = MSR_AMD64_SEV_ES_GHCB,		.always = true  },
-diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.9_unpatched/arch/x86/kvm/svm/svm.h linux-6.9/arch/x86/kvm/svm/svm.h
---- linux-6.9_unpatched/arch/x86/kvm/svm/svm.h	2024-07-21 18:02:09.317182792 +0200
-+++ linux-6.9/arch/x86/kvm/svm/svm.h	2024-07-21 18:02:11.660591891 +0200
-@@ -30,7 +30,7 @@
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.15_unpatched/arch/x86/kvm/svm/svm.h linux-6.15/arch/x86/kvm/svm/svm.h
+--- linux-6.15_unpatched/arch/x86/kvm/svm/svm.h	2025-06-25 20:54:10.756336719 +0200
++++ linux-6.15/arch/x86/kvm/svm/svm.h	2025-06-25 20:54:15.527316258 +0200
+@@ -44,7 +44,7 @@
  #define	IOPM_SIZE PAGE_SIZE * 3
  #define	MSRPM_SIZE PAGE_SIZE * 2
  
@@ -98,10 +98,10 @@ diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file l
  #define MSRPM_OFFSETS	32
  extern u32 msrpm_offsets[MSRPM_OFFSETS] __read_mostly;
  extern bool npt_enabled;
-diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.9_unpatched/arch/x86/kvm/vmx/vmx.c linux-6.9/arch/x86/kvm/vmx/vmx.c
---- linux-6.9_unpatched/arch/x86/kvm/vmx/vmx.c	2024-07-21 18:02:09.317182792 +0200
-+++ linux-6.9/arch/x86/kvm/vmx/vmx.c	2024-07-21 18:02:11.660591891 +0200
-@@ -183,6 +183,8 @@
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.15_unpatched/arch/x86/kvm/vmx/vmx.c linux-6.15/arch/x86/kvm/vmx/vmx.c
+--- linux-6.15_unpatched/arch/x86/kvm/vmx/vmx.c	2025-06-25 20:54:10.756906136 +0200
++++ linux-6.15/arch/x86/kvm/vmx/vmx.c	2025-06-25 20:54:15.530168135 +0200
+@@ -186,6 +186,8 @@
  	MSR_CORE_C3_RESIDENCY,
  	MSR_CORE_C6_RESIDENCY,
  	MSR_CORE_C7_RESIDENCY,
@@ -110,10 +110,10 @@ diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file l
  };
  
  /*
-diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.9_unpatched/arch/x86/kvm/vmx/vmx.h linux-6.9/arch/x86/kvm/vmx/vmx.h
---- linux-6.9_unpatched/arch/x86/kvm/vmx/vmx.h	2024-07-21 18:02:09.317182792 +0200
-+++ linux-6.9/arch/x86/kvm/vmx/vmx.h	2024-07-21 18:02:11.660591891 +0200
-@@ -360,7 +360,7 @@
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.15_unpatched/arch/x86/kvm/vmx/vmx.h linux-6.15/arch/x86/kvm/vmx/vmx.h
+--- linux-6.15_unpatched/arch/x86/kvm/vmx/vmx.h	2025-06-25 20:54:10.757001195 +0200
++++ linux-6.15/arch/x86/kvm/vmx/vmx.h	2025-06-25 20:54:15.531732260 +0200
+@@ -356,7 +356,7 @@
  	struct lbr_desc lbr_desc;
  
  	/* Save desired MSR intercept (read: pass-through) state */
