@@ -33,7 +33,7 @@ The patches may break nested virtualization / virtualization-based security in W
 - To add the QEMU command-line to the libvirt XML, change the root domain XML node to `<domain xmlns:qemu="http://libvirt.org/schemas/domain/qemu/1.0" type="kvm">`, add a `
   <qemu:commandline>` node inside (if missing) and finally paste the script output into it.
 
-- Windows 10 only: Add `-cpu hv-cppc-stub=on` to the QEMU command line, or add the `hv-cppc-stub=on` feature to the existing `-cpu` option.
+- Windows 10 only (QEMU 10.0 patch and newer only): Add `-cpu hv-cppc-stub=on` to the QEMU command line, or add the `hv-cppc-stub=on` feature to the existing `-cpu` option.
   As libvirt XML:
   ```xml
   <qemu:arg value="-cpu"/> <qemu:arg value="hv-cppc-stub=on"/>
@@ -52,6 +52,12 @@ The patches may break nested virtualization / virtualization-based security in W
   "AllowGuestPerfStates"=dword:00000001
   
   ```
+- [unrelated to CPPC] Additional optimization: Add `-cpu hv-no-nonarch-coresharing=on` to the QEMU command line, or add the `hv-no-nonarch-coresharing=on` feature to the existing `-cpu` option. May disable certain SMT side-channel mitigations in the guest OS. If vCPU pinning is configured correctly, such that SMTs are advertised in the topology and have neighboring vCPU IDs, this presumably improves performance without any impact on security (ONLY if pinning is configured correctly!)
+  As libvirt XML:
+  ```xml
+  <qemu:arg value="-cpu"/> <qemu:arg value="hv-no-nonarch-coresharing=on"/>
+  ```
+  It is auto-enabled up until the QEMU 10.0 patch but not beyond, now that the patch combines several `-cpu` options.
 
 - To find out whether the Windows guest actually uses CPPC-based scheduling, the most effective way is to put load on a single thread while the guest idles. In a script language of your choice, create an endless loop and check if the load consistently appears on the 'best core' in Task Manager. Win10: Start the program twice to check if the two 'best cores' are now loaded, and so on. Win11 is a bit more unpredictable beyond the single 'best' core, but will usually still follow the order. The HWiNFO utility should also show a CPPC core performance ranking in its detail view (though this does not prove whether the OS scheduler behaves).
 
@@ -74,7 +80,6 @@ Windows 11 makes that workaround largely infeasible, as pci.sys now maps DMA ran
 - Adds the acpi_cppc device type that provides the ACPI _CPC object carrying the configured core performance indicators. This device also adds some other stub ACPI objects that operating systems expect to be present for CPPC support.
 
   The [mkparams_cppc_device.py](mkparams_cppc_device.py) script generates a basic device configuration. For detailed documentation on the options, see `hw/acpi/cppc.c` in the QEMU patch file.
-- [unrelated to CPPC] Enables the `hv-no-nonarch-coresharing` Hyper-V enlightenment by default, which disables certain SMT side-channel mitigations in the guest OS. If vCPU pinning is configured correctly, such that SMTs are advertised in the topology and have neighboring vCPU IDs, this presumably improves performance without any impact on security. **With incorrect/missing vCPU pinning, however, this may open up the guest to side-channel security vulnerabilities.**
 - AMD-specific MSRs that are used for CPPC. The default `addrspace=2` setting for the acpi_cppc device will put references to those MSRs in the _CPC object.
 - Stub MSRs related to the `CpuManagement` Hyper-V feature, via `hv-cppc-stub` cpu feature. These are present to avoid faults in the guest OS.
 
