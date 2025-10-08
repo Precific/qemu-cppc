@@ -64,8 +64,8 @@ The patches may break nested virtualization / virtualization-based security in W
 ### Tested configurations
 - AMD Ryzen 7950X3D CPU
   - Intel P-/E-Core architectures may also benefit from these patches, but have not been tested. Whether those work out of the box should largely depend on how the intelppm.sys driver behaves. For instance, Intel Thread Director will not be present in the VM. The generic processr.sys driver is more likely to work here.
-- QEMU 8.2.2 .. 10.0.0
-- Host Linux kernels: `6.6.19-1-MANJARO` (patches for 6.6, 6.7 and 6.8), .., `6.14.6-2-MANJARO`
+- QEMU 8.2.2 .. 10.1.0
+- Host Linux kernels: `6.6.19-1-MANJARO`, .., `6.17.1-0-MANJARO`
 - Guest OS: Windows 10 22H2
 - Guest OS: Windows 11 24H2 requires the QEMU 10.0 patch (older patch versions always enable the hv-cppc-stub)
 - Guest OS: Linux guests currently reject the CPPC data as invalid
@@ -84,5 +84,5 @@ Windows 11 makes that workaround largely infeasible, as pci.sys now maps DMA ran
 - Stub MSRs related to the `CpuManagement` Hyper-V feature, via `hv-cppc-stub` cpu feature. These are present to avoid faults in the guest OS.
 
 ### KVM patches
-- Adds the `CpuManagement` winload workaround that hides the `CpuManagement` flag for a set amount of reads to the Hyper-V CPUID for each VM boot.
-- Enables read/write pass-through for the MPERF, APERF, MPERF_RO and APERF_RO MSRs, since the former two are also referenced by the ACPI _CPC objects emitted by the patched QEMU. These MSRs provide precise clocking information to the guest VM, which could conceivably be abused as a **side-channel**. Writes to these MSRs (usually 0 as value) will be visible to the host and all other VMs, and may cause inconsistent frequency reporting.
+- Adds the `CpuManagement` winload workaround that hides the `CpuManagement` flag for a set amount of reads to the Hyper-V CPUID for each VM boot. Will be removed eventually, as it is only needed for Windows 10.
+- Enables read/write (as of 6.17: read-only) pass-through for the MPERF, APERF, MPERF_RO and APERF_RO MSRs, since the former two are also referenced by the ACPI _CPC objects emitted by the patched QEMU. These MSRs provide precise clocking information to the guest VM, which could conceivably be abused as a **side-channel**. Writes to these MSRs (usually 0 as value) will be visible to the host and all other VMs, and may cause inconsistent frequency reporting.

@@ -34,9 +34,15 @@ if [ ! -f "$QEMUFILE" ] || [[ -z $(file "$QEMUFILE" 2>/dev/null | grep executabl
 	echo "FAILURE: qemu-system-x86_64 build output not found"
 	exit 1
 fi
-echo "SUCCESS: Built qemu-system-x86_64. Errors in package_qemu-common() above can be ignored."
+# Make it green so it stands out against the build 'ERROR' message (caused by skipping some builds)
+tput setaf 2 || :; tput setab 0 || :;
+echo -n "SUCCESS"
+tput sgr0 || :;
+echo ": Built qemu-system-x86_64. Errors in package_qemu-common() above can be ignored."
 
 mkdir -p "$QEMUOUTDIR"
 cp "$QEMUFILE" "$QEMUOUTDIR/"
+
+echo "Done"
 
 popd
