@@ -1016,7 +1016,7 @@ diff --unified --recursive --text --new-file '--exclude=.git' '--exclude=roms' '
 +
 +    if (!cppc_hv_msr_init(errp))
 +        return;
-+    cppc_set_perf_csr_passthrough();
++    /* Disabled for now: cppc_set_perf_csr_passthrough(); */
 +
 +    /* Retrieve CPU list, allocate corresponding array */
 +    assert(mc->possible_cpu_arch_ids);
