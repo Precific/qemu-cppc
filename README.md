@@ -11,7 +11,7 @@ The patches may break nested virtualization / virtualization-based security in W
 
 ## Usage
 - The relevant patch files are in the root directory of this repo. There also are build and install instructions for Manjaro (Arch-based) in the [manjaro](manjaro) subdirectory.
-- Install the patched `kvm`, `kvm_amd`, `kvm_intel` kernel modules and `qemu-system-x86_64-cppc` application. 
+- Install the patched `qemu-system-x86_64-cppc` application (required) and `kvm`, `kvm_amd`, `kvm_intel` kernel modules (Win10: required, Win11: optional). 
 - Format the mapping from guest to host threads (`<vCPU>:<host_thread#>`) as a list separated by comma characters.
   
   For instance, in the libvirt domain configuration,

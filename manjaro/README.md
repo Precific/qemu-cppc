@@ -1,6 +1,6 @@
 ## Build scripts for Manjaro
 
-The same steps apply on first installation and on updates. After installing a kernel update, reboot the system before rebuilding KVM. QEMU must also be rebuilt to match the qemu system package versions.
+The same steps apply on first installation and on updates of the respective system packages. QEMU must be rebuilt to match the updated qemu-system-x86 package version, KVM after each kernel update.
 
 ### Building patched QEMU
 Builds `qemu-system-x86_64` with patches applied. These steps should also work on upstream Arch Linux.
@@ -16,11 +16,11 @@ Note: the package part of the build-qemu step will show an error at the end, sin
 
 In the virtual machine configuration, set the emulator path as instructed by the install script.
 
-Note: The patched QEMU should expects the patched KVM drivers to be loaded (but the patched KVM drivers remain compatible with unpatched QEMU).
+Note: In Win10 guest configurations, the patched QEMU expects the patched KVM drivers to be loaded (but the patched KVM drivers remain compatible with unpatched QEMU).
 
 ### Building patched KVM
 
-Builds the KVM drivers for the current kernel version. This is based on the Manjaro kernel source repositories.
+Builds the KVM drivers for the current kernel version (optional for Win11 guests). This is based on the Manjaro kernel source repositories.
 
 To build and install (make sure to stop all KVM VMs on your system before installing):
 ```bash

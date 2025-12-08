@@ -1,0 +1,90 @@
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.17_unpatched/arch/x86/include/asm/kvm_host.h linux-6.17/arch/x86/include/asm/kvm_host.h
+--- linux-6.17_unpatched/arch/x86/include/asm/kvm_host.h	2025-10-08 20:08:47.582717051 +0200
++++ linux-6.17/arch/x86/include/asm/kvm_host.h	2025-10-10 01:42:58.605859494 +0200
+@@ -716,6 +716,8 @@
+ 		u64 vm_id;
+ 		u32 vp_id;
+ 	} nested;
++	/* HACK (CPPC) */
++	u32 cppc_hack_counter;
+ };
+ 
+ struct kvm_hypervisor_cpuid {
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.17_unpatched/arch/x86/kvm/cpuid.c linux-6.17/arch/x86/kvm/cpuid.c
+--- linux-6.17_unpatched/arch/x86/kvm/cpuid.c	2025-10-08 20:08:47.595604868 +0200
++++ linux-6.17/arch/x86/kvm/cpuid.c	2025-10-10 01:42:58.618610347 +0200
+@@ -2024,6 +2024,7 @@
+ 				*eax = vcpu->arch.hw_tsc_khz;
+ 			}
+ 		}
++		kvm_hv_override_cpuid(vcpu, function, eax, ebx, ecx, edx);
+ 	} else {
+ 		*eax = *ebx = *ecx = *edx = 0;
+ 		/*
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.17_unpatched/arch/x86/kvm/hyperv.h linux-6.17/arch/x86/kvm/hyperv.h
+--- linux-6.17_unpatched/arch/x86/kvm/hyperv.h	2025-10-08 20:08:47.595771099 +0200
++++ linux-6.17/arch/x86/kvm/hyperv.h	2025-10-10 01:42:58.618770269 +0200
+@@ -177,6 +177,47 @@
+ 	return !(to_kvm_hv(vcpu->kvm)->hv_invtsc_control & HV_EXPOSE_INVARIANT_TSC);
+ }
+ 
++/* 
++ * HACK (CPPC) - disable HV_CPU_MANAGEMENT until hypercalls are enabled
++ *  to work around a page mapping error in winload.
++ */
++static inline void kvm_hv_override_cpuid(struct kvm_vcpu *vcpu, int function,
++	       u32 *eax, u32 *ebx, u32 *ecx, u32 *edx)
++{
++	struct kvm *kvm = vcpu->kvm;
++	struct kvm_vcpu_hv *hv_vcpu = to_hv_vcpu(vcpu);
++	struct kvm_hv *hv = to_kvm_hv(kvm);
++	if (unlikely(!hv || !hv_vcpu))
++		return;
++	if (vcpu->vcpu_idx != 0)
++		return;
++	if (hv->hv_hypercall & HV_X64_MSR_HYPERCALL_ENABLE) {
++		//Use a 'warmup' counter to fix another issue:
++		// Prevent requirement for nested Hyper-V;
++		//  if Hyper-V is not enabled but HV_CPU_MANAGEMENT is,
++		//  Windows refuses to boot.
++		// The check is usually 2(Win10)/5(Win11) HYPERV_CPUID_FEATURES
++		//  calls after enabling hypercalls (winload).
++		if (hv_vcpu->cppc_hack_counter > 5)
++			return;
++		if (function == HYPERV_CPUID_FEATURES)
++			++hv_vcpu->cppc_hack_counter;
++	}
++	else {
++		hv_vcpu->cppc_hack_counter = 0;
++	}
++	if (function == HYPERV_CPUID_FEATURES) {
++		if (*ebx & HV_CPU_MANAGEMENT) {
++			*ebx &= ~(HV_CPU_MANAGEMENT | HV_ISOLATION);
++		}
++	}
++	//if (function == HYPERV_CPUID_ENLIGHTMENT_INFO) {
++	//	if (hv_vcpu->cpuid_cache.features_ebx & HV_CPU_MANAGEMENT) {
++	//		*eax &= ~(HV_X64_HYPERV_NESTED);
++	//	}
++	//}
++}
++
+ void kvm_hv_process_stimers(struct kvm_vcpu *vcpu);
+ 
+ void kvm_hv_setup_tsc_page(struct kvm *kvm,
+diff -x '*.orig' -x '*.rej' -x .config --unified --recursive --text --new-file linux-6.17_unpatched/arch/x86/kvm/svm/svm.c linux-6.17/arch/x86/kvm/svm/svm.c
+--- linux-6.17_unpatched/arch/x86/kvm/svm/svm.c	2025-10-08 20:08:47.596742243 +0200
++++ linux-6.17/arch/x86/kvm/svm/svm.c	2025-10-10 01:42:58.619726945 +0200
+@@ -840,8 +840,10 @@
+ 				  guest_cpuid_is_intel_compatible(vcpu));
+ 
+ 	if (kvm_aperfmperf_in_guest(vcpu->kvm)) {
+-		svm_disable_intercept_for_msr(vcpu, MSR_IA32_APERF, MSR_TYPE_R);
+-		svm_disable_intercept_for_msr(vcpu, MSR_IA32_MPERF, MSR_TYPE_R);
++		svm_disable_intercept_for_msr(vcpu, MSR_IA32_APERF, MSR_TYPE_RW);
++		svm_disable_intercept_for_msr(vcpu, MSR_IA32_MPERF, MSR_TYPE_RW);
++		svm_disable_intercept_for_msr(vcpu, 0xC00000E8, MSR_TYPE_R); //APERF_RO AMD
++		svm_disable_intercept_for_msr(vcpu, 0xC00000E7, MSR_TYPE_R); //MPERF_RO AMD
+ 	}
+ 
+ 	if (sev_es_guest(vcpu->kvm))
