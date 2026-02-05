@@ -29,6 +29,8 @@ GNUPGHOME="$(pwd)/.gnupg" makepkg -f --noextract || :
 QEMUFILE=src/build/qemu-system-x86_64
 if [ -f pkg/qemu-system-x86/usr/bin/qemu-system-x86_64 ]; then
 	QEMUFILE=pkg/qemu-system-x86/usr/bin/qemu-system-x86_64
+elif [ -f pkg/qemu-common/usr/bin/qemu-system-x86_64 ]; then
+	QEMUFILE=pkg/qemu-common/usr/bin/qemu-system-x86_64
 fi
 if [ ! -f "$QEMUFILE" ] || [[ -z $(file "$QEMUFILE" 2>/dev/null | grep executable || :) ]]; then
 	echo "FAILURE: qemu-system-x86_64 build output not found"
