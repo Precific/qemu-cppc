@@ -1766,14 +1766,12 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
      }
  
      return kvm_vm_enable_cap(s, KVM_CAP_X86_DISABLE_EXITS, 0,
-@@ -3339,14 +3336,16 @@
+@@ -3339,14 +3336,14 @@
      int ret;
  
      ret = kvm_vm_enable_cap(s, KVM_CAP_X86_USER_SPACE_MSR, 0,
 -                            KVM_MSR_EXIT_REASON_FILTER);
-+                            KVM_MSR_EXIT_REASON_FILTER
-+                            | KVM_MSR_EXIT_REASON_INVAL
-+                            | KVM_MSR_EXIT_REASON_UNKNOWN);
++                            KVM_MSR_EXIT_REASON_FILTER);
      if (ret < 0) {
          error_report("Could not enable user space MSRs: %s",
                       strerror(-ret));
