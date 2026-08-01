@@ -1,11 +1,9 @@
 ## QEMU/KVM: ACPI CPPC patches for Windows guests
 (and vfio-related kernel patches)
 
-This repo contains QEMU and KVM patches that enable reporting of per-core performance indicators to x86_64 Windows guests through ACPI CPPC. The goal is to improve overall guest performance especially with heterogeneous CPU designs (Ryzen dual-CCD X3D chips [*tested*], Intel P+E-Core [*not tested*]) but also to expose the per-core 'maximum performance' boost metrics present on recent AMD Ryzen processors. 
+This repo contains QEMU and KVM patches that enable reporting of per-core performance indicators to x86_64 Windows guests through ACPI CPPC. The goal is to improve overall guest performance with heterogeneous CPU designs especially (Ryzen dual-CCD X3D chips [*tested*], Intel P+E-Core [*tested by users*, feedback welcome]). Most recent Ryzen CPUs also have per-core boost limits factored in to their CPPC attributes.
 
-Windows uses the CPPC `highest_perf` per-core attributes as hints for thread scheduling. The drivers responsible for these scheduling hints are amdppm.sys [*tested*], intelppm.sys [*not tested*] or the generic processr.sys [*not tested but likely to work*]. In practice, if a program loads 8 threads, Windows 10 will usually schedule those onto the 8 fastest cores by `highest_perf`, while background tasks are moved to the slowest cores. Windows 11 is less consistent but also tends to load the 'fastest' core first. Energy profiles likely alter this behavior.
-
-**Disclaimer**: These patches should not be considered suitable for productive use and may open up a minor side-channel to the guest OS (exposing a host performance counter) if the guest cores are not isolated from the host. Windows 10 needs an additional hacky workaround. While I have not encountered any issues with the W10 workaround, your mileage may vary.
+Windows uses the CPPC `highest_perf` per-core attributes as hints for thread scheduling. The drivers responsible for these scheduling hints are amdppm.sys [*tested*], intelppm.sys [*seems to work*] or the generic processr.sys [*not tested but likely to work*]. In practice, if a program loads eight threads, Windows 10 will usually schedule those onto the eight fastest cores by `highest_perf`, while background tasks are moved to the slowest cores. Windows 11 is less consistent but also tends to load the 'fastest' core first. Energy profiles likely alter this behavior.
 
 The patches may break nested virtualization / virtualization-based security in Windows 10 guest systems. Windows 11 24H2 CPPC functionality has only been tested without nested virtualization.
 
@@ -38,7 +36,7 @@ The patches may break nested virtualization / virtualization-based security in W
   ```xml
   <qemu:arg value="-cpu"/> <qemu:arg value="hv-cppc-stub=on"/>
   ```
-  This feature triggers the correct code path in the Win10 amdppm.sys driver to use CPPC even inside a hypervisor.
+  Combined with the KVM patch, this **very hacky** feature triggers the correct code path in the Win10 amdppm.sys driver even inside a hypervisor.
   
   Note: Only the patched qemu-system supports several `-cpu` options. Stock QEMU will show an error about not knowing the CPU model.
   
@@ -61,6 +59,10 @@ The patches may break nested virtualization / virtualization-based security in W
   
   This is unlikely to affect performance but will fix frequency reporting in the guest, e.g. Windows Task Manager. Also appears to fix Win 10 CPU utilization numbers.
 
+  In theory, reporting may glitch when the guest and host both attempt to read the frequency.
+
+  **Note**: The guest could abuse the frequency counters to infer utilization on the host, based on CPU boosting behaviour.
+
 - [unrelated to CPPC] Additional optimization: Add `-cpu hv-no-nonarch-coresharing=on` to the QEMU command line, or add the `hv-no-nonarch-coresharing=on` feature to the existing `-cpu` option. May disable certain SMT side-channel mitigations in the guest OS. If vCPU pinning is configured correctly, such that SMTs are advertised in the topology and have neighboring vCPU IDs, this presumably improves performance without any impact on security (ONLY if pinning is configured correctly!)
   As libvirt XML:
   ```xml
@@ -72,9 +74,9 @@ The patches may break nested virtualization / virtualization-based security in W
 
 ### Tested configurations
 - AMD Ryzen 7950X3D CPU
-  - Intel P-/E-Core architectures may also benefit from these patches, but have not been tested. Whether those work out of the box should largely depend on how the intelppm.sys driver behaves. For instance, Intel Thread Director will not be present in the VM. The generic processr.sys driver is more likely to work here.
-- QEMU 8.2.2 .. 10.1.0
-- Host Linux kernels: `6.6.19-1-MANJARO`, .., `6.17.1-0-MANJARO`
+- Intel P-/E-Core architectures also seem to work. Users reported success on a 14900K and Ultra 9-285H.
+- QEMU 8.2.2 .. 11.0.0
+- Host Linux kernels: `6.6.19-1-MANJARO`, .., `7.2.0-rc4-1-MANJARO`
 - Guest OS: Windows 10 22H2
 - Guest OS: Windows 11 24H2 requires the QEMU 10.0 patch (older patch versions always enable the hv-cppc-stub)
 - Guest OS: Linux guests currently reject the CPPC data as invalid. Also note that Linux guests with amd-pstate will likely need `-cpu cppc=on,pstate=on`.
@@ -88,10 +90,11 @@ Windows 11 makes that workaround largely infeasible, as pci.sys now maps DMA ran
 ### QEMU patches
 - Adds the acpi_cppc device type that provides the ACPI _CPC object carrying the configured core performance indicators. This device also adds some other stub ACPI objects that operating systems expect to be present for CPPC support.
 
-  The [mkparams_cppc_device.py](mkparams_cppc_device.py) script generates a basic device configuration. For detailed documentation on the options, see `hw/acpi/cppc.c` in the QEMU patch file.
+  The [mkparams_cppc_device.py](mkparams_cppc_device.py) script generates a basic device configuration. For detailed documentation on all device configuration options, see `hw/acpi/cppc.c` in the QEMU patch file.
 - AMD-specific MSRs that are used for CPPC. The default `addrspace=2` setting for the acpi_cppc device will put references to those MSRs in the _CPC object.
-- Stub MSRs related to the `CpuManagement` Hyper-V feature, via `hv-cppc-stub` cpu feature. These are present to avoid faults in the guest OS.
+  This path also appears to work on Intel models (see Issue #4).
+- Win10: Stub MSRs related to the `CpuManagement` Hyper-V feature, via `hv-cppc-stub` cpu feature. These are present to avoid faults in the guest OS.
 
 ### KVM patches
 - Adds the `CpuManagement` winload workaround that hides the `CpuManagement` flag for a set amount of reads to the Hyper-V CPUID for each VM boot. Will be removed eventually, as it is only needed for Windows 10.
-- Enables read/write (as of 6.17: read-only) pass-through for the MPERF, APERF, MPERF_RO and APERF_RO MSRs, since the former two are also referenced by the ACPI _CPC objects emitted by the patched QEMU. These MSRs provide precise clocking information to the guest VM, which could conceivably be abused as a **side-channel**. Writes to these MSRs (usually 0 as value) will be visible to the host and all other VMs, and may cause inconsistent frequency reporting.
+- Enables read/write pass-through for the MPERF, APERF, MPERF_RO and APERF_RO MSRs, since the former two are also referenced by the ACPI _CPC objects emitted by the patched QEMU. These MSRs provide precise clocking information to the guest VM, which could in theory be abused as a side-channel. Writes to these MSRs (usually 0 as value) will be visible to the host and all other VMs sharing the core, and may cause inconsistent frequency reporting.
