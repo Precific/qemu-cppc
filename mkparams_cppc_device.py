@@ -102,9 +102,9 @@ if mode == "preview":
 elif mode == "config_qemu" or mode == "config_libvirt":
     processors_arr = []
     def addto_qemu(vcpu, vcpu_primary_smt, physcpu, highest_perf, nominal_perf, lowest_nonlinear_perf, lowest_perf):
-        processors_arr.append("\"%d:%d:%s:%s:%s:%s\"" % (vcpu, vcpu_primary_smt, highest_perf, nominal_perf, lowest_nonlinear_perf, lowest_perf))
+        processors_arr.append("'%d:%d:%s:%s:%s:%s'" % (vcpu, vcpu_primary_smt, highest_perf, nominal_perf, lowest_nonlinear_perf, lowest_perf))
     iter_cpu_mappings(addto_qemu)
-    device_str = '{"driver":"acpi-cppc","processors":[' + ','.join(processors_arr) + ']}'
+    device_str = "{'driver':'acpi-cppc','processors':[" + ",".join(processors_arr) + "]}"
     
     if mode == "config_qemu":
         print('-device \'' + device_str + '\'')
@@ -114,8 +114,6 @@ elif mode == "config_qemu" or mode == "config_libvirt":
             for i in range(len(val)):
                 if val[i] == '"':
                     val_out += '&quot;'
-                elif val[i] == "'":
-                    val_out += '&apos;'
                 elif val[i] == "<":
                     val_out += '&lt;'
                 elif val[i] == ">":

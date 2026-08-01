@@ -52,6 +52,15 @@ The patches may break nested virtualization / virtualization-based security in W
   "AllowGuestPerfStates"=dword:00000001
   
   ```
+
+- For frequency reporting in the guest, add `-overcommit x-cpu-perf=on` to the QEMU command line.
+  As libvirt XML:
+  ```xml
+    <qemu:arg value="-overcommit"/> <qemu:arg value="x-cpu-perf=on"/>
+  ```
+  
+  This is unlikely to affect performance but will fix frequency reporting in the guest, e.g. Windows Task Manager. Also appears to fix Win 10 CPU utilization numbers.
+
 - [unrelated to CPPC] Additional optimization: Add `-cpu hv-no-nonarch-coresharing=on` to the QEMU command line, or add the `hv-no-nonarch-coresharing=on` feature to the existing `-cpu` option. May disable certain SMT side-channel mitigations in the guest OS. If vCPU pinning is configured correctly, such that SMTs are advertised in the topology and have neighboring vCPU IDs, this presumably improves performance without any impact on security (ONLY if pinning is configured correctly!)
   As libvirt XML:
   ```xml
@@ -68,7 +77,7 @@ The patches may break nested virtualization / virtualization-based security in W
 - Host Linux kernels: `6.6.19-1-MANJARO`, .., `6.17.1-0-MANJARO`
 - Guest OS: Windows 10 22H2
 - Guest OS: Windows 11 24H2 requires the QEMU 10.0 patch (older patch versions always enable the hv-cppc-stub)
-- Guest OS: Linux guests currently reject the CPPC data as invalid
+- Guest OS: Linux guests currently reject the CPPC data as invalid. Also note that Linux guests with amd-pstate will likely need `-cpu cppc=on,pstate=on`.
 
 ## Patch details
 

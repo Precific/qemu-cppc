@@ -1,6 +1,6 @@
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/hw/acpi/acpi-cppc-stub.c qemu-11.0.0/hw/acpi/acpi-cppc-stub.c
---- ../../qemu-11.0.0/hw/acpi/acpi-cppc-stub.c	1970-01-01 01:00:00.000000000 +0100
-+++ qemu-11.0.0/hw/acpi/acpi-cppc-stub.c	2026-05-03 03:26:23.520641833 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/hw/acpi/acpi-cppc-stub.c qemu-11.0.2/hw/acpi/acpi-cppc-stub.c
+--- ../../qemu-11.0.2/hw/acpi/acpi-cppc-stub.c	1970-01-01 01:00:00.000000000 +0100
++++ qemu-11.0.2/hw/acpi/acpi-cppc-stub.c	2026-08-01 22:22:09.893923048 +0200
 @@ -0,0 +1,10 @@
 +#include "qemu/osdep.h"
 +#include "hw/acpi/cppc.h"
@@ -12,9 +12,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +{
 +    return NULL;
 +}
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/hw/acpi/aml-build.c qemu-11.0.0/hw/acpi/aml-build.c
---- ../../qemu-11.0.0/hw/acpi/aml-build.c	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/hw/acpi/aml-build.c	2026-05-03 03:26:23.520784675 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/hw/acpi/aml-build.c qemu-11.0.2/hw/acpi/aml-build.c
+--- ../../qemu-11.0.2/hw/acpi/aml-build.c	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/hw/acpi/aml-build.c	2026-08-01 22:22:09.894048304 +0200
 @@ -993,6 +993,39 @@
  }
  
@@ -55,10 +55,10 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
   * ACPI 5.0: 6.4.3.6 Extended Interrupt Descriptor
   * Type 1, Large Item Name 0x9
   */
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/hw/acpi/cppc.c qemu-11.0.0/hw/acpi/cppc.c
---- ../../qemu-11.0.0/hw/acpi/cppc.c	1970-01-01 01:00:00.000000000 +0100
-+++ qemu-11.0.0/hw/acpi/cppc.c	2026-05-03 03:26:23.520947442 +0200
-@@ -0,0 +1,1124 @@
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/hw/acpi/cppc.c qemu-11.0.2/hw/acpi/cppc.c
+--- ../../qemu-11.0.2/hw/acpi/cppc.c	1970-01-01 01:00:00.000000000 +0100
++++ qemu-11.0.2/hw/acpi/cppc.c	2026-08-01 22:22:09.894210350 +0200
+@@ -0,0 +1,1107 @@
 +#include "qemu/osdep.h"
 +#include "qemu/timer.h"
 +#include "migration/vmstate.h"
@@ -161,8 +161,6 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +    return reg_resource;
 +}
 +
-+//TODO: Fix processors device property (for command line configuration)
-+
 +//Implementation as MSR (AMD):
 + //CPUID Fn8000_0008_EBX[CPPC] to indicate MSR_AMD_CPPC_* support
 + //-> Will be set if present on host (imposed by QEMU via 'migratable' check)
@@ -170,8 +168,6 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 + // -> Missing, KVM sets it to 0
 + //CPUID Fn8000_0007_ECX[HwState] to indicate MSR_AMD_PERF_* support
 + // -> Will be present if present on host (imposed by QEMU _and_ KVM)
-+
-+//TODO: Implement AMDI0101 device - use acpi_send_event to notify OS about resulting CPPC changes
 +
 +#define SYSTEMREG_CPPCMEM_PERCPU 9
 +#define SYSTEMREG_PCTMEM_PERCPU 2
@@ -703,7 +699,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +        *  behave *mostly* as without HV_CPU_MANAGEMENT. */
 +        ret = kvm_provide_msr(kvm_state, 0x40000004, 1,
 +                              &cppc_rdmsr_zero_handler,
-+                              &cppc_wrmsr_zero_handler, true);
++                              &cppc_wrmsr_zero_handler);
 +        if (ret < 0) {
 +            error_setg(errp, "CPPC: Could not register the 0x4000_0004 MSR (is KVM in use?): %s",
 +                       strerror(-ret));
@@ -711,7 +707,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +        }
 +        ret = kvm_provide_msr(kvm_state, MSR_HV_REGISTER_CPU_MANAGEMENT_VERSION, 1,
 +                              &cppc_rdmsr_zero_handler,
-+                              &cppc_wrmsr_zero_handler, true);
++                              &cppc_wrmsr_zero_handler);
 +        if (ret < 0) {
 +            error_setg(errp, "CPPC: Could not register the CPU Management Version MSR (is KVM in use?): %s",
 +                       strerror(-ret));
@@ -719,7 +715,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +        }
 +        ret = kvm_provide_msr(kvm_state, 0x400000C1, 3,
 +                              &cppc_rdmsr_zero_handler,
-+                              &cppc_wrmsr_zero_handler, true);
++                              &cppc_wrmsr_zero_handler);
 +        if (ret < 0) {
 +            error_setg(errp, "CPPC: Could not register the Power State Trigger MSR (is KVM in use?): %s",
 +                       strerror(-ret));
@@ -727,7 +723,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +        }
 +        ret = kvm_provide_msr(kvm_state, 0x400000D1, 3,
 +                              &cppc_rdmsr_zero_handler,
-+                              &cppc_wrmsr_zero_handler, true);
++                              &cppc_wrmsr_zero_handler);
 +        if (ret < 0) {
 +            error_setg(errp, "CPPC: Could not register the Power State Config MSR (is KVM in use?): %s",
 +                       strerror(-ret));
@@ -935,7 +931,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +        ret = kvm_provide_msr(kvm_state,
 +                              _MSR_AMD_CPPC_FIRST, _MSR_AMD_CPPC_COUNT,
 +                              &cppc_rdmsr_main_handler,
-+                              &cppc_wrmsr_main_handler, true);
++                              &cppc_wrmsr_main_handler);
 +        if (ret < 0) {
 +            error_setg(errp, "CPPC: Could not register the CPPC MSRs (is KVM in use?): %s",
 +                       strerror(-ret));
@@ -944,7 +940,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +        ret = kvm_provide_msr(kvm_state,
 +                              _MSR_AMD_PERF_FIRST, _MSR_AMD_PERF_COUNT,
 +                              &cppc_rdmsr_main_handler,
-+                              &cppc_wrmsr_main_handler, true);
++                              &cppc_wrmsr_main_handler);
 +        if (ret < 0) {
 +            error_setg(errp, "CPPC: Could not register the P-State MSRs: %s",
 +                       strerror(-ret));
@@ -953,12 +949,12 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +
 +        //NOTE: Providing the performance counter MSRs through QEMU will cause a high context switch penalty.
 +        //The most performant way is to pass through these MSRs to the host CPU (needs a KVM patch).
-+        //This might open up timing-/frequency-based side-channels to the guest OS.
++        //That might open up timing-/frequency-based side-channels to the guest OS.
 +
 +        //ret = kvm_provide_msr(kvm_state,
 +        //                      MSR_IA32_MPERF, 2,
 +        //                      &cppc_rdmsr_main_handler,
-+        //                      &cppc_wrmsr_main_handler, true);
++        //                      &cppc_wrmsr_main_handler);
 +        //if (ret < 0) {
 +        //    error_setg(errp, "CPPC: Could not register the MPERF/APERF MSRs: %s",
 +        //               strerror(-ret));
@@ -967,7 +963,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +        //ret = kvm_provide_msr(kvm_state,
 +        //                      MSR_MPERF_RO, 2,
 +        //                      &cppc_rdmsr_main_handler,
-+        //                      &cppc_wrmsr_main_handler, true);
++        //                      &cppc_wrmsr_main_handler);
 +        //if (ret < 0) {
 +        //    error_setg(errp, "CPPC: Could not register the MPERF_RO/APERF_RO MSRs: %s",
 +        //               strerror(-ret));
@@ -976,15 +972,6 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +        cppc_msr_isset = true;
 +    }
 +    return true;
-+}
-+static void cppc_set_perf_csr_passthrough(void)
-+{
-+    int ret;
-+    ret = kvm_vm_enable_disable_exits(kvm_state, KVM_X86_DISABLE_EXITS_APERFMPERF);
-+    if (ret < 0) {
-+        warn_report("cppc: could not pass-through APERF/MPERF: %s",
-+                    strerror(-ret));
-+    }
 +}
 +#else
 +static bool cppc_hv_msr_init(Error **errp)
@@ -995,9 +982,6 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +{
 +    error_setg(errp, "CPPC MSR mode: Unsupported platform (requires x86 and KVM)");
 +    return false;
-+}
-+static void cppc_set_perf_csr_passthrough(void)
-+{
 +}
 +#endif
 +
@@ -1016,7 +1000,6 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +
 +    if (!cppc_hv_msr_init(errp))
 +        return;
-+    /* Disabled for now: cppc_set_perf_csr_passthrough(); */
 +
 +    /* Retrieve CPU list, allocate corresponding array */
 +    assert(mc->possible_cpu_arch_ids);
@@ -1183,9 +1166,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +    object_child_foreach(qdev_get_machine(), cppc_device_list, &dev);
 +    return dev;
 +}
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/hw/acpi/cpu.c qemu-11.0.0/hw/acpi/cpu.c
---- ../../qemu-11.0.0/hw/acpi/cpu.c	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/hw/acpi/cpu.c	2026-05-03 03:26:23.521162642 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/hw/acpi/cpu.c qemu-11.0.2/hw/acpi/cpu.c
+--- ../../qemu-11.0.2/hw/acpi/cpu.c	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/hw/acpi/cpu.c	2026-08-01 22:22:09.894436999 +0200
 @@ -1,6 +1,9 @@
  #include "qemu/osdep.h"
  #include "migration/vmstate.h"
@@ -1282,9 +1265,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
              aml_append(cpus_dev, dev);
          }
      }
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/hw/acpi/generic_event_device.c qemu-11.0.0/hw/acpi/generic_event_device.c
---- ../../qemu-11.0.0/hw/acpi/generic_event_device.c	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/hw/acpi/generic_event_device.c	2026-05-03 03:26:23.521282403 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/hw/acpi/generic_event_device.c qemu-11.0.2/hw/acpi/generic_event_device.c
+--- ../../qemu-11.0.2/hw/acpi/generic_event_device.c	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/hw/acpi/generic_event_device.c	2026-08-01 22:22:09.894552978 +0200
 @@ -630,3 +630,10 @@
  }
  
@@ -1296,9 +1279,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +                                                                     NULL));
 +    return (acpi_ged_state != NULL);
 +}
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/hw/acpi/Kconfig qemu-11.0.0/hw/acpi/Kconfig
---- ../../qemu-11.0.0/hw/acpi/Kconfig	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/hw/acpi/Kconfig	2026-05-03 03:26:23.521371480 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/hw/acpi/Kconfig qemu-11.0.2/hw/acpi/Kconfig
+--- ../../qemu-11.0.2/hw/acpi/Kconfig	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/hw/acpi/Kconfig	2026-08-01 22:22:09.894631316 +0200
 @@ -4,6 +4,7 @@
  config ACPI_X86
      bool
@@ -1318,9 +1301,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
  config ACPI_MEMORY_HOTPLUG
      bool
      select MEM_DEVICE
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/hw/acpi/meson.build qemu-11.0.0/hw/acpi/meson.build
---- ../../qemu-11.0.0/hw/acpi/meson.build	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/hw/acpi/meson.build	2026-05-03 03:34:26.139904106 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/hw/acpi/meson.build qemu-11.0.2/hw/acpi/meson.build
+--- ../../qemu-11.0.2/hw/acpi/meson.build	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/hw/acpi/meson.build	2026-08-01 22:22:09.894688263 +0200
 @@ -1,10 +1,13 @@
  acpi_ss = ss.source_set()
 +acpi_specific_ss = ss.source_set()
@@ -1343,9 +1326,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
  system_ss.add_all(when: 'CONFIG_ACPI', if_true: acpi_ss)
  system_ss.add(when: 'CONFIG_GHES_CPER', if_true: files('ghes_cper.c'))
  stub_ss.add(files('ghes_cper_stub.c'))
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/hw/core/qdev-properties-system.c qemu-11.0.0/hw/core/qdev-properties-system.c
---- ../../qemu-11.0.0/hw/core/qdev-properties-system.c	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/hw/core/qdev-properties-system.c	2026-05-03 03:26:23.521615671 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/hw/core/qdev-properties-system.c qemu-11.0.2/hw/core/qdev-properties-system.c
+--- ../../qemu-11.0.2/hw/core/qdev-properties-system.c	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/hw/core/qdev-properties-system.c	2026-08-01 22:22:09.894792270 +0200
 @@ -33,6 +33,7 @@
  #include "system/block-backend.h"
  #include "system/blockdev.h"
@@ -1436,9 +1419,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +    .get   = get_cppc_processor_caps,
 +    .set   = set_cppc_processor_caps
 +};
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/include/hw/acpi/aml-build.h qemu-11.0.0/include/hw/acpi/aml-build.h
---- ../../qemu-11.0.0/include/hw/acpi/aml-build.h	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/include/hw/acpi/aml-build.h	2026-05-03 03:26:23.521743416 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/include/hw/acpi/aml-build.h qemu-11.0.2/include/hw/acpi/aml-build.h
+--- ../../qemu-11.0.2/include/hw/acpi/aml-build.h	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/include/hw/acpi/aml-build.h	2026-08-01 22:22:09.894916224 +0200
 @@ -80,6 +80,7 @@
      AML_AS_PCI_CONFIG = 0X02,
      AML_AS_EMBEDDED_CTRL = 0X03,
@@ -1458,9 +1441,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
  Aml *aml_interrupt(AmlConsumerAndProducer con_and_pro,
                     AmlLevelAndEdge level_and_edge,
                     AmlActiveHighAndLow high_and_low, AmlShared shared,
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/include/hw/acpi/cppc.h qemu-11.0.0/include/hw/acpi/cppc.h
---- ../../qemu-11.0.0/include/hw/acpi/cppc.h	1970-01-01 01:00:00.000000000 +0100
-+++ qemu-11.0.0/include/hw/acpi/cppc.h	2026-05-03 03:26:23.521818328 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/include/hw/acpi/cppc.h qemu-11.0.2/include/hw/acpi/cppc.h
+--- ../../qemu-11.0.2/include/hw/acpi/cppc.h	1970-01-01 01:00:00.000000000 +0100
++++ qemu-11.0.2/include/hw/acpi/cppc.h	2026-08-01 22:22:09.894978491 +0200
 @@ -0,0 +1,72 @@
 +#ifndef ACPI_CPPC_H
 +#define ACPI_CPPC_H
@@ -1534,9 +1517,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +CPPCDevice *cppc_get_device(void);
 +
 +#endif
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/include/hw/acpi/generic_event_device.h qemu-11.0.0/include/hw/acpi/generic_event_device.h
---- ../../qemu-11.0.0/include/hw/acpi/generic_event_device.h	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/include/hw/acpi/generic_event_device.h	2026-05-03 03:26:23.521877212 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/include/hw/acpi/generic_event_device.h qemu-11.0.2/include/hw/acpi/generic_event_device.h
+--- ../../qemu-11.0.2/include/hw/acpi/generic_event_device.h	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/include/hw/acpi/generic_event_device.h	2026-08-01 22:22:09.895036361 +0200
 @@ -139,5 +139,6 @@
  void build_ged_aml(Aml *table, const char* name, HotplugHandler *hotplug_dev,
                     uint32_t ged_irq, AmlRegionSpace rs, hwaddr ged_base);
@@ -1544,9 +1527,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +bool acpi_ged_present(void);
  
  #endif
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/include/hw/core/qdev-properties-system.h qemu-11.0.0/include/hw/core/qdev-properties-system.h
---- ../../qemu-11.0.0/include/hw/core/qdev-properties-system.h	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/include/hw/core/qdev-properties-system.h	2026-05-03 03:29:16.704282088 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/include/hw/core/qdev-properties-system.h qemu-11.0.2/include/hw/core/qdev-properties-system.h
+--- ../../qemu-11.0.2/include/hw/core/qdev-properties-system.h	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/include/hw/core/qdev-properties-system.h	2026-08-01 22:22:09.895102455 +0200
 @@ -36,6 +36,7 @@
  extern const PropertyInfo qdev_prop_endian_mode;
  extern const PropertyInfo qdev_prop_vmapple_virtio_blk_variant;
@@ -1564,16 +1547,95 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +
 +
  #endif
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/system/vl.c qemu-11.0.0/system/vl.c
---- ../../qemu-11.0.0/system/vl.c	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/system/vl.c	2026-05-03 03:29:16.704571638 +0200
-@@ -2934,7 +2934,22 @@
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/include/system/system.h qemu-11.0.2/include/system/system.h
+--- ../../qemu-11.0.2/include/system/system.h	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/include/system/system.h	2026-08-01 22:22:09.895166857 +0200
+@@ -44,6 +44,7 @@
+ extern const char *keyboard_layout;
+ extern uint8_t *boot_splash_filedata;
+ extern bool enable_cpu_pm;
++extern bool enable_cpu_perf;
+ extern QEMUClockType rtc_clock;
+ 
+ typedef enum {
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/qemu-options.hx qemu-11.0.2/qemu-options.hx
+--- ../../qemu-11.0.2/qemu-options.hx	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/qemu-options.hx	2026-08-01 22:22:09.895486501 +0200
+@@ -4967,10 +4967,11 @@
+ ERST
+ 
+ DEF("overcommit", HAS_ARG, QEMU_OPTION_overcommit,
+-    "-overcommit [mem-lock=on|off|on-fault][cpu-pm=on|off]\n"
++    "-overcommit [mem-lock=on|off|on-fault][cpu-pm=on|off][x-cpu-perf=on|off]\n"
+     "                run qemu with overcommit hints\n"
+     "                mem-lock=on|off|on-fault controls memory lock support (default: off)\n"
+-    "                cpu-pm=on|off controls cpu power management (default: off)\n",
++    "                cpu-pm=on|off controls cpu power management (default: off)\n"
++    "                x-cpu-perf=on|off cppc patch: controls cpu frequency passthrough (default: off)\n",
+     QEMU_ARCH_ALL)
+ SRST
+ ``-overcommit mem-lock=on|off|on-fault``
+@@ -4993,6 +4994,10 @@
+     works best when host CPU is not overcommitted. When used, host
+     estimates of CPU cycle and power utilization will be incorrect, not
+     taking into account guest idle time.
++
++    Guest ability to estimate current frequency of host cpus can be enabled
++    via ``x-cpu-perf=on`` (disabled by default). This is a non-standard feature
++    from the qemu-cppc patches.
+ ERST
+ 
+ DEF("gdb", HAS_ARG, QEMU_OPTION_gdb, \
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/system/globals.c qemu-11.0.2/system/globals.c
+--- ../../qemu-11.0.2/system/globals.c	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/system/globals.c	2026-08-01 22:22:09.895873752 +0200
+@@ -46,6 +46,7 @@
+ const char* keyboard_layout;
+ MlockState mlock_state;
+ bool enable_cpu_pm;
++bool enable_cpu_perf;
+ int autostart = 1;
+ int vga_interface_type = VGA_NONE;
+ bool vga_interface_created;
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/system/vl.c qemu-11.0.2/system/vl.c
+--- ../../qemu-11.0.2/system/vl.c	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/system/vl.c	2026-08-01 22:26:24.159580271 +0200
+@@ -163,7 +163,7 @@
+     QTAILQ_ENTRY(DeviceOption) next;
+ } DeviceOption;
+ 
+-static const char *cpu_option;
++static char *cpu_option;
+ static const char *mem_path;
+ static const char *incoming;
+ static const char *incoming_str[MIGRATION_CHANNEL_TYPE__MAX];
+@@ -362,6 +362,10 @@
+             .name = "cpu-pm",
+             .type = QEMU_OPT_BOOL,
+         },
++        {
++            .name = "x-cpu-perf",
++            .type = QEMU_OPT_BOOL,
++        },
+         { /* end of list */ }
+     },
+ };
+@@ -1897,6 +1901,8 @@
+ 
+     enable_cpu_pm = qemu_opt_get_bool(opts, "cpu-pm", enable_cpu_pm);
+ 
++    enable_cpu_perf = qemu_opt_get_bool(opts, "x-cpu-perf", enable_cpu_perf);
++
+     mem_lock_opt = qemu_opt_get(opts, "mem-lock");
+     if (!mem_lock_opt) {
+         return;
+@@ -2934,7 +2940,22 @@
              switch(popt->index) {
              case QEMU_OPTION_cpu:
                  /* hw initialization will check this */
 -                cpu_option = optarg;
 +                if (cpu_option) {
-+                    const char *old_cpu_option = cpu_option;
++                    char *old_cpu_option = cpu_option;
 +                    size_t cpu_option_buf_len = strlen(old_cpu_option) + 1 + strlen(optarg) + 1;
 +                    char *new_cpu_option = malloc(cpu_option_buf_len * sizeof(char));
 +                    if (new_cpu_option != NULL) {
@@ -1582,7 +1644,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 +                        strcat(new_cpu_option, optarg);
 +                    }
 +                    cpu_option = new_cpu_option;
-+                    /* will throw a warning (but must have been created by malloc or strdup) */
++                    /* free old cpu_option created by malloc or strdup */
 +                    free(old_cpu_option);
 +                }
 +                else {
@@ -1591,19 +1653,19 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
                  break;
              case QEMU_OPTION_hda:
              case QEMU_OPTION_hdb:
-@@ -3828,6 +3843,9 @@
+@@ -3828,6 +3849,9 @@
      current_machine->cpu_type = machine_default_cpu_type(current_machine);
      if (cpu_option) {
          current_machine->cpu_type = parse_cpu_option(cpu_option);
 +        /** cpu_option created by malloc or strdup */
-+        free((char*)cpu_option);
++        free(cpu_option);
 +        cpu_option = NULL;
      }
      /* NB: for machine none cpu_type could STILL be NULL here! */
  
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/target/i386/cpu.c qemu-11.0.0/target/i386/cpu.c
---- ../../qemu-11.0.0/target/i386/cpu.c	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/target/i386/cpu.c	2026-05-03 03:29:16.705423438 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/target/i386/cpu.c qemu-11.0.2/target/i386/cpu.c
+--- ../../qemu-11.0.2/target/i386/cpu.c	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/target/i386/cpu.c	2026-08-01 22:22:09.896576620 +0200
 @@ -44,6 +44,7 @@
  #include "system/address-spaces.h"
  #include "hw/core/boards.h"
@@ -1630,30 +1692,35 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
              "amd-psfd", NULL, NULL, NULL,
          },
          .cpuid = { .eax = 0x80000008, .reg = R_EBX, },
-@@ -8113,6 +8114,22 @@
+@@ -8114,6 +8115,27 @@
              unavail = ~0;
          }
          break;
 +    case FEAT_8000_0007_EDX:
-+        /*
-+         * For CPPC guest driver functionality: allow pstate flag
-+         * TODO: Only if CPPC device is present
-+         */
-+        r |= (1 << 7);
++        if (cpu && !IS_AMD_CPU(&cpu->env)) {
++           /*
++            * pstate flag, needed for AMD CPPC guest driver functionality
++            * Listed as Reserved in Intel Developer's Manual
++            */
++            unavail = (1 << 7);
++        }
 +        break;
 +    case FEAT_8000_0008_EBX:
-+        /*
-+         * Processor Programming Reference (PPR) for AMD
-+         * Family 19h Model 51h, Revision A1 Processors.
-+         * X86_FEATURE_CPPC indicates presence of MSR registers
-+         * for ACPI _CPC.
-+         */
-+        r |= (1 << 27);
++        if (cpu && !IS_AMD_CPU(&cpu->env)) {
++            /*
++             * X86_FEATURE_CPPC flag, indicates presence of MSR registers
++             * for ACPI _CPC on AMD processors.
++             * See Processor Programming Reference (PPR) for AMD
++             * Family 19h Model 51h, Revision A1 Processors.
++             * Reserved for Intel, so mask it off.
++             */
++            unavail = (1 << 27);
++        }
 +        break;
  
      case FEAT_7_0_EBX:
  #ifndef CONFIG_USER_ONLY
-@@ -10607,6 +10624,8 @@
+@@ -10608,6 +10630,8 @@
      DEFINE_PROP_BIT64("hv-syndbg", X86CPU, hyperv_features,
                        HYPERV_FEAT_SYNDBG, 0),
  #endif
@@ -1662,9 +1729,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
      DEFINE_PROP_BOOL("hv-passthrough", X86CPU, hyperv_passthrough, false),
      DEFINE_PROP_BOOL("hv-enforce-cpuid", X86CPU, hyperv_enforce_cpuid, false),
  
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/target/i386/cpu.h qemu-11.0.0/target/i386/cpu.h
---- ../../qemu-11.0.0/target/i386/cpu.h	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/target/i386/cpu.h	2026-05-03 03:29:16.705944105 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/target/i386/cpu.h qemu-11.0.2/target/i386/cpu.h
+--- ../../qemu-11.0.2/target/i386/cpu.h	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/target/i386/cpu.h	2026-08-01 22:22:09.897089128 +0200
 @@ -1477,6 +1477,7 @@
  #define HYPERV_FEAT_XMM_INPUT           18
  #define HYPERV_FEAT_TLBFLUSH_EXT        19
@@ -1673,9 +1740,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
  
  #ifndef HYPERV_SPINLOCK_NEVER_NOTIFY
  #define HYPERV_SPINLOCK_NEVER_NOTIFY             0xFFFFFFFF
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/target/i386/kvm/hyperv-proto.h qemu-11.0.0/target/i386/kvm/hyperv-proto.h
---- ../../qemu-11.0.0/target/i386/kvm/hyperv-proto.h	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/target/i386/kvm/hyperv-proto.h	2026-05-03 03:29:16.706121407 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/target/i386/kvm/hyperv-proto.h qemu-11.0.2/target/i386/kvm/hyperv-proto.h
+--- ../../qemu-11.0.2/target/i386/kvm/hyperv-proto.h	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/target/i386/kvm/hyperv-proto.h	2026-08-01 22:22:09.897263908 +0200
 @@ -46,6 +46,8 @@
   */
  #define HV_POST_MESSAGES             (1u << 4)
@@ -1693,9 +1760,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
  #define HV_ENLIGHTENED_VMCS_RECOMMENDED     (1u << 14)
  #define HV_NO_NONARCH_CORESHARING           (1u << 18)
  
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/target/i386/kvm/kvm.c qemu-11.0.0/target/i386/kvm/kvm.c
---- ../../qemu-11.0.0/target/i386/kvm/kvm.c	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/target/i386/kvm/kvm.c	2026-05-03 03:38:37.065407809 +0200
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/target/i386/kvm/kvm.c qemu-11.0.2/target/i386/kvm/kvm.c
+--- ../../qemu-11.0.2/target/i386/kvm/kvm.c	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/target/i386/kvm/kvm.c	2026-08-01 22:22:09.897505805 +0200
 @@ -101,17 +101,7 @@
   * 255 kvm_msr_entry structs */
  #define MSR_BUF_SIZE 4096
@@ -1766,15 +1833,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
      }
  
      return kvm_vm_enable_cap(s, KVM_CAP_X86_DISABLE_EXITS, 0,
-@@ -3339,14 +3336,14 @@
-     int ret;
- 
-     ret = kvm_vm_enable_cap(s, KVM_CAP_X86_USER_SPACE_MSR, 0,
--                            KVM_MSR_EXIT_REASON_FILTER);
-+                            KVM_MSR_EXIT_REASON_FILTER);
-     if (ret < 0) {
-         error_report("Could not enable user space MSRs: %s",
-                      strerror(-ret));
+@@ -3346,7 +3343,7 @@
          exit(1);
      }
  
@@ -1783,7 +1842,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
                           kvm_rdmsr_core_thread_count, NULL);
      if (ret < 0) {
          error_report("Could not install MSR_CORE_THREAD_COUNT handler: %s",
-@@ -3362,7 +3361,7 @@
+@@ -3362,7 +3359,7 @@
      int ret;
  
      if (s->msr_energy.enable == true) {
@@ -1792,7 +1851,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
                               kvm_rdmsr_rapl_power_unit, NULL);
          if (ret < 0) {
              error_report("Could not install MSR_RAPL_POWER_UNIT handler: %s",
-@@ -3370,7 +3369,7 @@
+@@ -3370,7 +3367,7 @@
              return ret;
          }
  
@@ -1801,7 +1860,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
                               kvm_rdmsr_pkg_power_limit, NULL);
          if (ret < 0) {
              error_report("Could not install MSR_PKG_POWER_LIMIT handler: %s",
-@@ -3378,14 +3377,14 @@
+@@ -3378,14 +3375,14 @@
              return ret;
          }
  
@@ -1818,7 +1877,7 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
                               kvm_rdmsr_pkg_energy_status, NULL);
          if (ret < 0) {
              error_report("Could not install MSR_PKG_ENERGY_STATUS handler: %s",
-@@ -3529,7 +3528,11 @@
+@@ -3529,13 +3526,25 @@
      }
  
      if (enable_cpu_pm) {
@@ -1831,13 +1890,21 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
          if (ret < 0) {
              error_report("kvm: guest stopping CPU not supported: %s",
                           strerror(-ret));
-@@ -6328,12 +6331,12 @@
-     QEMU_BUILD_BUG_ON(ARRAY_SIZE(msr_handlers) != ARRAY_SIZE(filter.ranges));
-     for (i = 0; i < ARRAY_SIZE(msr_handlers); i++) {
-         KVMMSRHandlers *handler = &msr_handlers[i];
--        if (handler->msr) {
-+        if (handler->msr && handler->filters) {
-             struct kvm_msr_filter_range *range = &filter.ranges[j++];
+             return ret;
+         }
+     }
++    if (enable_cpu_perf) {
++        ret = kvm_vm_enable_disable_exits(s, KVM_X86_DISABLE_EXITS_APERFMPERF);
++        if (ret < 0) {
++            error_report("cppc: could not pass-through APERF/MPERF: %s",
++                         strerror(-ret));
++            return ret;
++        }
++    }
+ 
+     if (object_dynamic_cast(OBJECT(ms), TYPE_X86_MACHINE)) {
+         X86MachineState *x86ms = X86_MACHINE(ms);
+@@ -6333,7 +6342,7 @@
  
              *range = (struct kvm_msr_filter_range) {
                  .flags = 0,
@@ -1846,63 +1913,56 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
                  .base = handler->msr,
                  .bitmap = (__u8 *)&zero,
              };
-@@ -6353,6 +6356,7 @@
+@@ -6351,8 +6360,8 @@
+     return kvm_vm_ioctl(s, KVM_X86_SET_MSR_FILTER, &filter);
+ }
  
 -static int kvm_filter_msr(KVMState *s, uint32_t msr, QEMURDMSRHandler *rdmsr,
 -                          QEMUWRMSRHandler *wrmsr)
 +static int kvm_add_msr(KVMState *s, uint32_t msr, uint32_t count, 
-+                       QEMURDMSRHandler *rdmsr, QEMUWRMSRHandler *wrmsr,
-+                       bool provides, bool filters)
++                       QEMURDMSRHandler *rdmsr, QEMUWRMSRHandler *wrmsr)
  {
      int i, ret = 0;
  
-@@ -6361,7 +6367,10 @@
-             break;
+@@ -6362,6 +6371,7 @@
          } else if (!msr_handlers[i].msr) {
              msr_handlers[i] = (KVMMSRHandlers) {
-+                .provides = provides ? 1 : 0,
-+                .filters = filters ? 1 : 0,
                  .msr = msr,
 +                .count = count,
                  .rdmsr = rdmsr,
                  .wrmsr = wrmsr,
              };
-@@ -6382,6 +6391,17 @@
+@@ -6382,6 +6392,16 @@
   end:
      return ret;
  }
 +int kvm_provide_msr(KVMState *s, uint32_t msr, uint32_t count,
-+                     QEMURDMSRHandler *rdmsr, QEMUWRMSRHandler *wrmsr,
-+                     bool intercept)
++                     QEMURDMSRHandler *rdmsr, QEMUWRMSRHandler *wrmsr)
 +{
-+    return kvm_add_msr(s, msr, count, rdmsr, wrmsr, true, intercept);
++    return kvm_add_msr(s, msr, count, rdmsr, wrmsr);
 +}
 +int kvm_filter_msr(KVMState *s, uint32_t msr, uint32_t count,
 +                     QEMURDMSRHandler *rdmsr, QEMUWRMSRHandler *wrmsr)
 +{
-+    return kvm_add_msr(s, msr, count, rdmsr, wrmsr, false, true);
++    return kvm_add_msr(s, msr, count, rdmsr, wrmsr);
 +}
  
  static int kvm_handle_rdmsr(X86CPU *cpu, struct kvm_run *run)
  {
-@@ -6390,9 +6410,14 @@
+@@ -6390,9 +6410,10 @@
  
      for (i = 0; i < ARRAY_SIZE(msr_handlers); i++) {
          KVMMSRHandlers *handler = &msr_handlers[i];
 -        if (run->msr.index == handler->msr) {
 +        if (run->msr.index >= handler->msr
-+            && run->msr.index - handler->msr < handler->count
-+            && (!(run->msr.reason != KVM_MSR_EXIT_REASON_FILTER)
-+                || (handler->provides == 1))
-+            && (!(run->msr.reason == KVM_MSR_EXIT_REASON_FILTER)
-+                || (handler->filters == 1))) {
++            && run->msr.index - handler->msr < handler->count) {
              if (handler->rdmsr) {
 -                r = handler->rdmsr(cpu, handler->msr,
 +                r = handler->rdmsr(cpu, run->msr.index,
                                     (uint64_t *)&run->msr.data);
                  run->msr.error = r ? 0 : 1;
                  return 0;
-@@ -6400,7 +6425,8 @@
+@@ -6400,7 +6421,8 @@
          }
      }
  
@@ -1912,17 +1972,13 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
  }
  
  static int kvm_handle_wrmsr(X86CPU *cpu, struct kvm_run *run)
-@@ -6410,16 +6436,22 @@
+@@ -6410,16 +6432,18 @@
  
      for (i = 0; i < ARRAY_SIZE(msr_handlers); i++) {
          KVMMSRHandlers *handler = &msr_handlers[i];
 -        if (run->msr.index == handler->msr) {
 +        if (run->msr.index >= handler->msr
-+            && run->msr.index - handler->msr < handler->count
-+            && (!(run->msr.reason != KVM_MSR_EXIT_REASON_FILTER)
-+                || (handler->provides == 1))
-+            && (!(run->msr.reason == KVM_MSR_EXIT_REASON_FILTER)
-+                || (handler->filters == 1))) {
++            && run->msr.index - handler->msr < handler->count) {
              if (handler->wrmsr) {
 -                r = handler->wrmsr(cpu, handler->msr, run->msr.data);
 +                r = handler->wrmsr(cpu, run->msr.index, run->msr.data);
@@ -1938,28 +1994,10 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
  }
  
  static bool has_sgx_provisioning;
-@@ -6604,13 +6636,13 @@
-         }
-         break;
-     case KVM_EXIT_X86_RDMSR:
--        /* We only enable MSR filtering, any other exit is bogus */
--        assert(run->msr.reason == KVM_MSR_EXIT_REASON_FILTER);
-+        ///* We only enable MSR filtering, any other exit is bogus */
-+        //assert(run->msr.reason == KVM_MSR_EXIT_REASON_FILTER);
-         ret = kvm_handle_rdmsr(cpu, run);
-         break;
-     case KVM_EXIT_X86_WRMSR:
--        /* We only enable MSR filtering, any other exit is bogus */
--        assert(run->msr.reason == KVM_MSR_EXIT_REASON_FILTER);
-+        ///* We only enable MSR filtering, any other exit is bogus */
-+        //assert(run->msr.reason == KVM_MSR_EXIT_REASON_FILTER);
-         ret = kvm_handle_wrmsr(cpu, run);
-         break;
- #ifdef CONFIG_XEN_EMU
-diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.0/target/i386/kvm/kvm_i386.h qemu-11.0.0/target/i386/kvm/kvm_i386.h
---- ../../qemu-11.0.0/target/i386/kvm/kvm_i386.h	2026-04-21 21:36:26.000000000 +0200
-+++ qemu-11.0.0/target/i386/kvm/kvm_i386.h	2026-05-03 03:29:16.706960064 +0200
-@@ -72,6 +72,47 @@
+diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '--exclude=roms' '--exclude=docs' '--exclude=*.orig' '--exclude=*.rej' '--exclude=*.pyc' '--exclude=lcitool' ../../qemu-11.0.2/target/i386/kvm/kvm_i386.h qemu-11.0.2/target/i386/kvm/kvm_i386.h
+--- ../../qemu-11.0.2/target/i386/kvm/kvm_i386.h	2026-06-26 23:38:49.000000000 +0200
++++ qemu-11.0.2/target/i386/kvm/kvm_i386.h	2026-08-01 22:22:09.897841499 +0200
+@@ -72,6 +72,42 @@
  uint32_t cpuid_entry_get_reg(struct kvm_cpuid_entry2 *entry, int reg);
  uint32_t kvm_x86_build_cpuid(CPUX86State *env, struct kvm_cpuid_entry2 *entries,
                               uint32_t cpuid_i);
@@ -1972,8 +2010,6 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 + * On failure, returns false, possibly leading to #GP(0) */
 +typedef bool QEMUWRMSRHandler(X86CPU *cpu, uint32_t msr, uint64_t val);
 +typedef struct kvm_msr_handlers {
-+    uint8_t provides : 1;
-+    uint8_t filters : 1;
 +    uint32_t msr;
 +    uint32_t count;
 +    QEMURDMSRHandler *rdmsr;
@@ -1986,12 +2022,9 @@ diff --unified --recursive --text --new-file --no-dereference '--exclude=.git' '
 + *  - count: Number of consecutive MSRs to provide
 + *  - rdmsr: Read handler
 + *  - wrmsr: Write handler
-+ *  - intercept: If set, will also install a KVM MSR filter,
-+ *               in order to override the MSR value from KVM.
 + */
 +int kvm_provide_msr(KVMState *s, uint32_t msr, uint32_t count,
-+                     QEMURDMSRHandler *rdmsr, QEMUWRMSRHandler *wrmsr,
-+                     bool intercept);
++                     QEMURDMSRHandler *rdmsr, QEMUWRMSRHandler *wrmsr);
 +/* 
 + * Call to provide an MSR filter that *will* override matching MSRs.
 + *  - msr: First MSR ID
