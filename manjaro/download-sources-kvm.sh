@@ -30,7 +30,7 @@ git_get_main_branch () { #Source: David Foster, https://stackoverflow.com/a/6762
 
 KERNELPKG=${1:-$KERNELPKG_DEFAULT}
 if [ ! -d kernel-manjaro-package-${KERNELVER_BRANCH} ]; then
-	git clone https://gitlab.manjaro.org/packages/core/${KERNELPKG} kernel-manjaro-package-${KERNELVER_BRANCH}
+	git clone https://gitlab.manjaro.org/packages/core/${KERNELPKG}.git kernel-manjaro-package-${KERNELVER_BRANCH}
 fi
 pushd kernel-manjaro-package-${KERNELVER_BRANCH}
 KERNEL_MAIN_BRANCH=$(git_get_main_branch)
